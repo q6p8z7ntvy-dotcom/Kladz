@@ -3,6 +3,7 @@ import Foundation
 import MapKit
 
 enum RouteBuilder {
+    private static let maximumSampledPointCount = 100_000
     static func roadRoute(
         from start: CLLocationCoordinate2D,
         to end: CLLocationCoordinate2D,
@@ -29,12 +30,29 @@ enum RouteBuilder {
     }
 
     static func sample(coordinates: [CLLocationCoordinate2D], every meters: CLLocationDistance) -> [CLLocationCoordinate2D] {
-        guard coordinates.count > 1 else { return coordinates }
+        guard !coordinates.isEmpty else { return [] }
+        guard coordinates.count > 1 else { return Array(coordinates.prefix(maximumSampledPointCount)) }
+        guard meters.isFinite, meters > 0 else {
+            return Array(coordinates.prefix(maximumSampledPointCount))
+        }
+
         var sampled = [coordinates[0]]
         for (a, b) in zip(coordinates, coordinates.dropFirst()) {
+            let remaining = maximumSampledPointCount - sampled.count
+            guard remaining > 0 else { break }
+
             let dist = CLLocation(latitude: a.latitude, longitude: a.longitude)
                 .distance(from: CLLocation(latitude: b.latitude, longitude: b.longitude))
-            let steps = max(1, Int(ceil(dist / meters)))
+            let requestedSteps = dist / meters
+            // Clamp before converting to Int: tiny intervals or very long segments must
+            // never trigger integer overflow or allocate an unbounded route array.
+            let steps: Int
+            if !requestedSteps.isFinite || requestedSteps >= Double(remaining) {
+                steps = remaining
+            } else {
+                steps = max(1, Int(ceil(requestedSteps)))
+            }
+
             for i in 1...steps {
                 let t = Double(i) / Double(steps)
                 sampled.append(CLLocationCoordinate2D(
@@ -42,6 +60,7 @@ enum RouteBuilder {
                     longitude: a.longitude + (b.longitude - a.longitude) * t
                 ))
             }
+            if sampled.count >= maximumSampledPointCount { break }
         }
         return sampled
     }
