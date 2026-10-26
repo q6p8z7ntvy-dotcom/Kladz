@@ -279,7 +279,12 @@ final class SpoofSession: ObservableObject {
     }
 
     private static func coordinateLabel(_ coordinate: CLLocationCoordinate2D) -> String {
-        String(format: "%.5f, %.5f", coordinate.latitude, coordinate.longitude)
+        String(
+            format: "%.5f, %.5f",
+            locale: Locale(identifier: "en_US_POSIX"),
+            coordinate.latitude,
+            coordinate.longitude
+        )
     }
 
     private static func isGenericFavoriteName(_ name: String) -> Bool {
