@@ -77,7 +77,7 @@ enum GPXCodec {
         // Check the file size before reading it into memory.
         if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
            let size = attributes[.size] as? NSNumber,
-           size.intValue > maximumFileSize {
+           size.uint64Value > UInt64(maximumFileSize) {
             throw NSError(
                 domain: "Kladz",
                 code: 3,
