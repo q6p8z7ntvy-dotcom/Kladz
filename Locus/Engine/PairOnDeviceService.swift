@@ -49,10 +49,14 @@ final class PairOnDeviceService: ObservableObject {
         beginKeepAlive()
 
         _ = pairingStore.pairingURL
-        try? FileManager.default.createDirectory(
-            at: pairingStore.pairingURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
+        do {
+            try PairingCredentialProtection.applyDirectory(
+                at: pairingStore.pairingURL.deletingLastPathComponent()
+            )
+        } catch {
+            phase = .failed("Could not secure the pairing folder: \\(error.localizedDescription)")
+            return
+        }
 
         let outputPath = pairingStore.pairingURL.path
         let box = callbackBox
@@ -252,7 +256,15 @@ final class PairOnDeviceService: ObservableObject {
             return
         }
 
-        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: outputPath)
+        do {
+            try PairingCredentialProtection.apply(to: URL(fileURLWithPath: outputPath))
+        } catch {
+            try? FileManager.default.removeItem(atPath: outputPath)
+            DispatchQueue.main.async {
+                box.owner?.handleFailure("Pairing completed, but Kladz could not secure the pairing file: \\(error.localizedDescription)")
+            }
+            return
+        }
         DispatchQueue.main.async { box.owner?.handleSuccess() }
     }
 }
