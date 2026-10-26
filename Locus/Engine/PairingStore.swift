@@ -43,7 +43,34 @@ final class PairingStore: ObservableObject {
 
     func refresh() {
         try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        applyDataProtection()
         hasPairingFile = FileManager.default.fileExists(atPath: pairingURL.path)
+    }
+
+    /// Pairing material is a credential. Use iOS Data Protection and keep it out of backups.
+    /// This protection class permits background use after the first unlock following reboot.
+    private func applyDataProtection() {
+        try? FileManager.default.setAttributes(
+            [
+                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
+                .posixPermissions: 0o700
+            ],
+            ofItemAtPath: directoryURL.path
+        )
+
+        guard FileManager.default.fileExists(atPath: pairingURL.path) else { return }
+        try? FileManager.default.setAttributes(
+            [
+                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
+                .posixPermissions: 0o600
+            ],
+            ofItemAtPath: pairingURL.path
+        )
+
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var protectedURL = pairingURL
+        try? protectedURL.setResourceValues(values)
     }
 
     func importPairing(from sourceURL: URL) throws {
@@ -92,11 +119,22 @@ final class PairingStore: ObservableObject {
         }
 
         try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        applyDataProtection()
         if FileManager.default.fileExists(atPath: pairingURL.path) {
             try FileManager.default.removeItem(at: pairingURL)
         }
-        try data.write(to: pairingURL, options: .atomic)
-        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: pairingURL.path)
+        try data.write(to: pairingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        try FileManager.default.setAttributes(
+            [
+                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
+                .posixPermissions: 0o600
+            ],
+            ofItemAtPath: pairingURL.path
+        )
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var protectedURL = pairingURL
+        try protectedURL.setResourceValues(values)
         hasPairingFile = true
         lastError = nil
     }
