@@ -207,8 +207,16 @@ final class SpoofSession: ObservableObject {
                         longitude: previous.longitude + (next.longitude - previous.longitude) * t
                     )
                     let delay = stepMeters / speed
-                    try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                    do {
+                        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                    } catch {
+                        // Cancellation must never allow a stale route point to be applied
+                        // after the user presses Stop or starts another route.
+                        return
+                    }
+                    guard !Task.isCancelled else { return }
                     await MainActor.run {
+                        guard !Task.isCancelled else { return }
                         self.apply(coord, pairing: pairing, markRecent: false)
                     }
                 }
@@ -415,7 +423,7 @@ final class SpoofSession: ObservableObject {
     private func postDropNotification(_ message: String) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
         let content = UNMutableNotificationContent()
-        content.title = "Locus spoof dropped"
+        content.title = "Kladz location session interrupted"
         content.body = message
         content.sound = .default
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
