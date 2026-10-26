@@ -124,7 +124,7 @@ final class PairableHostAdvertiser {
 private final class RelayPipe {
     private let inbound: NWConnection
     private let outbound: NWConnection
-    private let queue = DispatchQueue(label: "locus.pairable.relay")
+    private let queue = DispatchQueue(label: "kladz.pairable.relay")
     private let cancellationLock = NSLock()
     private var isCancelled = false
 

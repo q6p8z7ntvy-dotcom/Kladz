@@ -68,7 +68,7 @@ final class PairOnDeviceService: ObservableObject {
                 Self.runBlockingAccept(outputPath: outputPath, box: box)
             }
         }
-        worker?.name = "locus.pairable-host"
+        worker?.name = "kladz.pairable-host"
         worker?.qualityOfService = .userInitiated
         worker?.start()
     }
@@ -158,7 +158,7 @@ final class PairOnDeviceService: ObservableObject {
         keepAlive.start()
         audioKeepAlive.start()
         guard backgroundTask == .invalid else { return }
-        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "locus.pairable-host") { [weak self] in
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "kladz.pairable-host") { [weak self] in
             self?.endKeepAlive()
         }
     }
@@ -185,7 +185,7 @@ final class PairOnDeviceService: ObservableObject {
         if #available(iOS 15.0, *) {
             content.interruptionLevel = .timeSensitive
         }
-        let request = UNNotificationRequest(identifier: "locus.pairing.pin", content: content, trigger: nil)
+        let request = UNNotificationRequest(identifier: "kladz.pairing.pin", content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request)
     }
 
@@ -194,7 +194,7 @@ final class PairOnDeviceService: ObservableObject {
         content.title = title
         content.body = body
         content.sound = .default
-        let request = UNNotificationRequest(identifier: "locus.pairing.status.\(UUID().uuidString)", content: content, trigger: nil)
+        let request = UNNotificationRequest(identifier: "kladz.pairing.status.\(UUID().uuidString)", content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request)
     }
 

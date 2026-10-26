@@ -135,7 +135,7 @@ enum LocationEngine {
                 tunnel_create_rppairing(
                     $0,
                     socklen_t(MemoryLayout<sockaddr_in>.stride),
-                    "LocusLocation",
+                    "KladzLocation",
                     pairingHandle,
                     nil,
                     nil,

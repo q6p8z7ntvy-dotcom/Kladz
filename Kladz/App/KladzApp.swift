@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct LocusApp: App {
+struct KladzApp: App {
     @StateObject private var session = SpoofSession()
     @StateObject private var pairing = PairingStore()
     @AppStorage(SetupGate.defaultsKey) private var setupComplete = false
@@ -43,11 +43,11 @@ struct LocusApp: App {
         if ["plist", "mobiledevicepairing", "mobiledevicepair"].contains(ext) {
             try? pairing.importPairing(from: url)
         } else if ext == "gpx" {
-            NotificationCenter.default.post(name: .locusImportGPX, object: url)
+            NotificationCenter.default.post(name: .kladzImportGPX, object: url)
         }
     }
 }
 
 extension Notification.Name {
-    static let locusImportGPX = Notification.Name("locusImportGPX")
+    static let kladzImportGPX = Notification.Name("kladzImportGPX")
 }

@@ -1,7 +1,7 @@
 import AVFoundation
 import Foundation
 
-/// Plays near-silent audio so iOS keeps Locus runnable (and able to accept
+/// Plays near-silent audio so iOS keeps Kladz runnable (and able to accept
 /// TCP) while the user is in Settings › Developer Mode.
 final class SilentAudioKeepAlive {
     private var player: AVAudioPlayer?
@@ -23,9 +23,9 @@ final class SilentAudioKeepAlive {
             p.play()
             player = p
             wasActive = true
-            NSLog("[Locus] silent audio keep-alive started")
+            NSLog("[Kladz] silent audio keep-alive started")
         } catch {
-            NSLog("[Locus] silent audio keep-alive failed: %@", error.localizedDescription)
+            NSLog("[Kladz] silent audio keep-alive failed: %@", error.localizedDescription)
         }
     }
 
