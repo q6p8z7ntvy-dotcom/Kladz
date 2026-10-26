@@ -158,7 +158,7 @@ enum GPXCodec {
         }
         for c in safeCoordinates {
             body += String(
-                format: "      <trkpt lat=\\\"%.6f\\\" lon=\\\"%.6f\\\"></trkpt>\\n",
+                format: "      <trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>\n",
                 locale: Locale(identifier: "en_US_POSIX"),
                 c.latitude,
                 c.longitude
