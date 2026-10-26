@@ -13,6 +13,15 @@ struct SettingsView: View {
     @State private var localDevVPNInstalled = LocalDevVPN.isInstalled
     @Environment(\.scenePhase) private var scenePhase
 
+    private func saveTunnelIP() {
+        guard TunnelConfig.setTargetIP(tunnelIP) else {
+            session.lastError = "Enter a valid IPv4 address, for example 10.7.0.1."
+            return
+        }
+        tunnelIP = TunnelConfig.targetIP
+        session.lastError = nil
+    }
+
     private var supportsOnDevicePairing: Bool {
         if #available(iOS 27.0, *) { return true }
         return false
@@ -69,14 +78,14 @@ struct SettingsView: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .onSubmit {
-                            TunnelConfig.setTargetIP(tunnelIP)
+                            saveTunnelIP()
                         }
                     LabeledContent("Status") {
                         Text(LocalDevVPN.isConnected ? "Connected" : "Not connected")
                             .foregroundStyle(LocalDevVPN.isConnected ? LocusTheme.statusGood : LocusTheme.statusWarn)
                     }
                     Button("Save tunnel IP") {
-                        TunnelConfig.setTargetIP(tunnelIP)
+                        saveTunnelIP()
                     }
                     Button {
                         if localDevVPNInstalled {
