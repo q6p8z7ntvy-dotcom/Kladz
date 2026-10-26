@@ -148,9 +148,17 @@ enum GPXCodec {
             <trkseg>
 
         """
-        for c in coordinates {
+        // Keep exports bounded even if a future caller supplies an oversized or
+        // malformed route. Invalid coordinates must not become NaN/Infinity in GPX.
+        let safeCoordinates = coordinates.prefix(maximumPointCount).filter {
+            $0.latitude.isFinite &&
+            $0.longitude.isFinite &&
+            (-90.0...90.0).contains($0.latitude) &&
+            (-180.0...180.0).contains($0.longitude)
+        }
+        for c in safeCoordinates {
             body += String(
-                format: "      <trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>\n",
+                format: "      <trkpt lat=\\\"%.6f\\\" lon=\\\"%.6f\\\"></trkpt>\\n",
                 locale: Locale(identifier: "en_US_POSIX"),
                 c.latitude,
                 c.longitude
