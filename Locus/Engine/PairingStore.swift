@@ -56,12 +56,26 @@ final class PairingStore: ObservableObject {
         }
 
         do {
+            // Existing files may predate current import limits or be replaced outside
+            // the app. Validate them with a bounded read before allowing native code
+            // to consume the pairing path.
+            let handle = try FileHandle(forReadingFrom: pairingURL)
+            defer { try? handle.close() }
+            let data = try handle.read(upToCount: Self.maximumPairingFileSize + 1) ?? Data()
+            guard data.count <= Self.maximumPairingFileSize,
+                  looksLikePairingPlist(data) else {
+                hasPairingFile = false
+                lastError = "The pairing file is invalid or too large. Import a valid RPPairing file (maximum 5 MB)."
+                return
+            }
+
             try PairingCredentialProtection.apply(to: pairingURL)
             hasPairingFile = true
+            lastError = nil
         } catch {
-            // Fail closed: don't use credentials if their at-rest protections cannot be applied.
+            // Fail closed: don't use credentials if validation or at-rest protections fail.
             hasPairingFile = false
-            lastError = "Could not secure the pairing file. Import it again after restarting the app."
+            lastError = "Could not validate or secure the pairing file. Import it again after restarting the app."
         }
     }
 
