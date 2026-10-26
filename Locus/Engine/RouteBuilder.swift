@@ -48,38 +48,74 @@ enum RouteBuilder {
 }
 
 enum GPXCodec {
+    private static let maximumFileSize = 20 * 1_024 * 1_024
+    private static let maximumPointCount = 100_000
+
     static func parse(_ url: URL) throws -> [CLLocationCoordinate2D] {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+
+        // Check the file size before reading it into memory.
+        if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+           let size = attributes[.size] as? NSNumber,
+           size.intValue > maximumFileSize {
+            throw NSError(
+                domain: "Kladz",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "GPX file is too large (maximum 20 MB)."]
+            )
+        }
+
         let data = try Data(contentsOf: url)
-        let text = String(decoding: data, as: UTF8.self)
-        var coords: [CLLocationCoordinate2D] = []
-        let pattern = #"lat="([^"]+)"[^>]*lon="([^"]+)""#
-        let regex = try NSRegularExpression(pattern: pattern)
+        guard data.count <= maximumFileSize,
+              let text = String(data: data, encoding: .utf8) else {
+            throw NSError(
+                domain: "Kladz",
+                code: 4,
+                userInfo: [NSLocalizedDescriptionKey: "GPX must be a UTF-8 file smaller than 20 MB."]
+            )
+        }
+
+        // Only read actual GPX waypoint/route/track points, not unrelated lat/lon
+        // attributes such as metadata bounds. Lookaheads accept either attribute order.
+        let pattern = #"<(?:trkpt|rtept|wpt)\b(?=[^>]*\blat="([^"]+)")(?=[^>]*\blon="([^"]+)")[^>]*>"#
+        let regex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
         let range = NSRange(text.startIndex..<text.endIndex, in: text)
-        regex.enumerateMatches(in: text, range: range) { match, _, _ in
+        var coords: [CLLocationCoordinate2D] = []
+        var exceededPointLimit = false
+
+        regex.enumerateMatches(in: text, range: range) { match, _, stop in
             guard let match,
-                  let latR = Range(match.range(at: 1), in: text),
-                  let lonR = Range(match.range(at: 2), in: text),
-                  let lat = Double(text[latR]),
-                  let lon = Double(text[lonR]) else { return }
-            coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lon))
-        }
-        // Also support lon before lat
-        if coords.isEmpty {
-            let alt = #"lon="([^"]+)"[^>]*lat="([^"]+)""#
-            let altRegex = try NSRegularExpression(pattern: alt)
-            altRegex.enumerateMatches(in: text, range: range) { match, _, _ in
-                guard let match,
-                      let lonR = Range(match.range(at: 1), in: text),
-                      let latR = Range(match.range(at: 2), in: text),
-                      let lon = Double(text[lonR]),
-                      let lat = Double(text[latR]) else { return }
-                coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lon))
+                  let latRange = Range(match.range(at: 1), in: text),
+                  let lonRange = Range(match.range(at: 2), in: text),
+                  let latitude = Double(text[latRange]),
+                  let longitude = Double(text[lonRange]),
+                  latitude.isFinite,
+                  longitude.isFinite,
+                  (-90.0...90.0).contains(latitude),
+                  (-180.0...180.0).contains(longitude) else { return }
+
+            guard coords.count < maximumPointCount else {
+                exceededPointLimit = true
+                stop.pointee = true
+                return
             }
+            coords.append(CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
         }
+
         guard !coords.isEmpty else {
-            throw NSError(domain: "Kladz", code: 2, userInfo: [NSLocalizedDescriptionKey: "No track points found in GPX"])
+            throw NSError(
+                domain: "Kladz",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "No valid GPX track, route, or waypoint points were found."]
+            )
+        }
+        guard !exceededPointLimit else {
+            throw NSError(
+                domain: "Kladz",
+                code: 5,
+                userInfo: [NSLocalizedDescriptionKey: "GPX contains too many points (maximum 100,000)."]
+            )
         }
         return coords
     }
