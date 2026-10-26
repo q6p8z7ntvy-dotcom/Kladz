@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 enum TunnelConfig {
@@ -12,7 +13,17 @@ enum TunnelConfig {
         return stored
     }
 
-    static func setTargetIP(_ value: String) {
-        UserDefaults.standard.set(value, forKey: defaultsKey)
+    static func isValidIPv4(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        var address = in_addr()
+        return trimmed.withCString { inet_pton(AF_INET, $0, &address) } == 1
+    }
+
+    @discardableResult
+    static func setTargetIP(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isValidIPv4(trimmed) else { return false }
+        UserDefaults.standard.set(trimmed, forKey: defaultsKey)
+        return true
     }
 }
