@@ -37,7 +37,7 @@ jobs:
         run: brew install xcodegen
 
       - name: Validate app property list
-        run: plutil -lint Locus/Resources/Info.plist
+        run: plutil -lint Kladz/Resources/Info.plist
 
       - name: Generate Xcode project
         run: xcodegen generate
@@ -47,7 +47,7 @@ jobs:
           set -o pipefail
           mkdir -p build
           xcodebuild \
-            -project Locus.xcodeproj \
+            -project Kladz.xcodeproj \
             -scheme Kladz \
             -configuration Release \
             -sdk iphoneos \
@@ -60,7 +60,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild \
-            -project Locus.xcodeproj \
+            -project Kladz.xcodeproj \
             -scheme Kladz \
             -configuration Release \
             -sdk iphoneos \
