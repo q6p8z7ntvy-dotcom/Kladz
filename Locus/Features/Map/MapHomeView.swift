@@ -490,13 +490,18 @@ final class PlaceSearchCompleter: NSObject, ObservableObject, MKLocalSearchCompl
 
     nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
         let items = completer.results
+        let completedQuery = completer.queryFragment
         Task { @MainActor in
-            guard completer.queryFragment == self.query else { return }
+            guard completedQuery == self.query else { return }
             self.results = items
         }
     }
 
     nonisolated func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
-        Task { @MainActor in self.results = [] }
+        let failedQuery = completer.queryFragment
+        Task { @MainActor in
+            guard failedQuery == self.query else { return }
+            self.results = []
+        }
     }
 }
