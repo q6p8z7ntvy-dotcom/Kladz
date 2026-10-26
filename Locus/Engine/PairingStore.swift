@@ -106,23 +106,12 @@ final class PairingStore: ObservableObject {
             throw PairingImportError.invalidContents
         }
 
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        applyDataProtection()
+        try PairingCredentialProtection.applyDirectory(at: directoryURL)
         if FileManager.default.fileExists(atPath: pairingURL.path) {
             try FileManager.default.removeItem(at: pairingURL)
         }
         try data.write(to: pairingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-        try FileManager.default.setAttributes(
-            [
-                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
-                .posixPermissions: 0o600
-            ],
-            ofItemAtPath: pairingURL.path
-        )
-        var values = URLResourceValues()
-        values.isExcludedFromBackup = true
-        var protectedURL = pairingURL
-        try protectedURL.setResourceValues(values)
+        try PairingCredentialProtection.apply(to: pairingURL)
         hasPairingFile = true
         lastError = nil
     }
