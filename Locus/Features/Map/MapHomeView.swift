@@ -13,6 +13,8 @@ struct MapHomeView: View {
     @State private var routeEnd: CLLocationCoordinate2D?
     @State private var routeCoords: [CLLocationCoordinate2D] = []
     @State private var isRouting = false
+    @State private var routeRequestTask: Task<Void, Never>?
+    @State private var routeRequestID = UUID()
     @State private var showRouteSheet = false
     @State private var showGPXImporter = false
     @State private var drawnPath: [CLLocationCoordinate2D] = []
@@ -360,18 +362,32 @@ struct MapHomeView: View {
             session.lastError = "Set a route start and end."
             return
         }
+
+        // A slower previous search must never overwrite the user's newer route request.
+        routeRequestTask?.cancel()
+        let requestID = UUID()
+        routeRequestID = requestID
+        routeCoords = []
         isRouting = true
-        Task {
+
+        routeRequestTask = Task {
             do {
                 let coords = try await RouteBuilder.roadRoute(from: start, to: end, mode: session.travelMode)
+                guard !Task.isCancelled else { return }
                 await MainActor.run {
+                    guard routeRequestID == requestID else { return }
                     routeCoords = coords
                     isRouting = false
+                    routeRequestTask = nil
                 }
             } catch {
                 await MainActor.run {
+                    guard routeRequestID == requestID else { return }
                     isRouting = false
-                    session.lastError = error.localizedDescription
+                    routeRequestTask = nil
+                    if !(error is CancellationError) {
+                        session.lastError = error.localizedDescription
+                    }
                 }
             }
         }
