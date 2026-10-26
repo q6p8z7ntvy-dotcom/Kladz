@@ -92,6 +92,7 @@ final class SpoofSession: ObservableObject {
 
     private let favoritesKey = "locus.favorites"
     private let recentsKey = "locus.recents"
+    private static let maximumPlaybackCoordinates = 100_000
 
     init() {
         favorites = SavedPlace.load(key: favoritesKey)
@@ -181,7 +182,24 @@ final class SpoofSession: ObservableObject {
     }
 
     func followRoute(_ coordinates: [CLLocationCoordinate2D], pairing: PairingStore) {
-        guard pairing.hasPairingFile, coordinates.count >= 2 else { return }
+        guard pairing.hasPairingFile else {
+            lastError = "Import an RPPairing file in Settings first."
+            return
+        }
+        guard coordinates.count >= 2 else {
+            lastError = "Choose or import a route with at least two points."
+            return
+        }
+        guard coordinates.count <= Self.maximumPlaybackCoordinates,
+              coordinates.allSatisfy({
+                  $0.latitude.isFinite &&
+                  $0.longitude.isFinite &&
+                  (-90.0...90.0).contains($0.latitude) &&
+                  (-180.0...180.0).contains($0.longitude)
+              }) else {
+            lastError = "This route contains too many points or invalid coordinates."
+            return
+        }
         routeTask?.cancel()
         stopJoystick()
         let mode = travelMode
@@ -437,9 +455,23 @@ final class SpoofSession: ObservableObject {
     }
 
     private func offset(coordinate: CLLocationCoordinate2D, eastMeters: Double, northMeters: Double) -> CLLocationCoordinate2D {
-        let earth = 6378137.0
+        let earth = 6_378_137.0
+        guard eastMeters.isFinite, northMeters.isFinite,
+              coordinate.latitude.isFinite, coordinate.longitude.isFinite else {
+            return coordinate
+        }
+
+        // Avoid the longitude singularity at the poles and keep every joystick
+        // update inside valid geographic bounds.
+        let latitude = min(89.9999, max(-89.9999, coordinate.latitude))
+        let latitudeRadians = latitude * .pi / 180
         let dLat = northMeters / earth * (180 / .pi)
-        let dLon = eastMeters / (earth * cos(coordinate.latitude * .pi / 180)) * (180 / .pi)
-        return CLLocationCoordinate2D(latitude: coordinate.latitude + dLat, longitude: coordinate.longitude + dLon)
+        let longitudeScale = max(0.000001, abs(cos(latitudeRadians)))
+        let dLon = eastMeters / (earth * longitudeScale) * (180 / .pi)
+        let nextLatitude = min(90.0, max(-90.0, latitude + dLat))
+        let rawLongitude = coordinate.longitude + dLon
+        let wrappedLongitude = (rawLongitude + 180).truncatingRemainder(dividingBy: 360)
+        let normalizedLongitude = (wrappedLongitude < 0 ? wrappedLongitude + 360 : wrappedLongitude) - 180
+        return CLLocationCoordinate2D(latitude: nextLatitude, longitude: normalizedLongitude)
     }
 }
