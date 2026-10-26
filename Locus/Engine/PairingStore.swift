@@ -43,14 +43,26 @@ final class PairingStore: ObservableObject {
     }
 
     func refresh() {
-        try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        applyDataProtection()
-        hasPairingFile = FileManager.default.fileExists(atPath: pairingURL.path)
-    }
+        let exists = FileManager.default.fileExists(atPath: pairingURL.path)
+        guard exists else {
+            // Still secure the containing directory before a future credential write.
+            do {
+                try PairingCredentialProtection.applyDirectory(at: directoryURL)
+            } catch {
+                lastError = "Could not secure the pairing folder: \(error.localizedDescription)"
+            }
+            hasPairingFile = false
+            return
+        }
 
-    /// Apply credential protections to the pairing directory and, when present, file.
-    private func applyDataProtection() {
-        try? PairingCredentialProtection.apply(to: pairingURL)
+        do {
+            try PairingCredentialProtection.apply(to: pairingURL)
+            hasPairingFile = true
+        } catch {
+            // Fail closed: don't use credentials if their at-rest protections cannot be applied.
+            hasPairingFile = false
+            lastError = "Could not secure the pairing file. Import it again after restarting the app."
+        }
     }
 
     func importPairing(from sourceURL: URL) throws {
@@ -131,8 +143,9 @@ final class PairingStore: ObservableObject {
             return false
         }
 
-        // Pairing files must be a valid property-list collection, not arbitrary XML/text.
-        return object is [AnyHashable: Any] || object is [Any]
+        // RPPairing files are dictionaries. Reject arrays and arbitrary valid plists,
+        // which are not valid pairing credentials for this app.
+        return object is [String: Any]
     }
 }
 
