@@ -3,6 +3,7 @@ import idevice
 
 enum LocationEngineError: LocalizedError {
     case invalidIP
+    case invalidCoordinate
     case pairingRead
     case tunnelCreate
     case remoteServer
@@ -14,6 +15,7 @@ enum LocationEngineError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidIP: return "Tunnel IP is invalid. Check Settings → Tunnel IP (usually 10.7.0.1)."
+        case .invalidCoordinate: return "Coordinates must be finite values within latitude −90…90 and longitude −180…180."
         case .pairingRead: return "Could not read the RPPairing file. Generate one with idevice_pair in RPPairing mode."
         case .tunnelCreate: return "Could not open the developer tunnel. Is LocalDevVPN connected on Wi‑Fi?"
         case .remoteServer: return "Connected to the tunnel but RemoteXPC handshake failed."
@@ -56,9 +58,18 @@ enum LocationEngine {
     private static let locationSet: Int32 = 11
     private static let locationClear: Int32 = 12
 
-    static var isSessionActive: Bool { locationSimulation != nil }
+    static var isSessionActive: Bool {
+        queue.sync { locationSimulation != nil }
+    }
 
     static func set(latitude: Double, longitude: Double, pairingPath: String, deviceIP: String) -> Result<Void, LocationEngineError> {
+        guard latitude.isFinite,
+              longitude.isFinite,
+              (-90.0...90.0).contains(latitude),
+              (-180.0...180.0).contains(longitude) else {
+            return .failure(.invalidCoordinate)
+        }
+
         var result: Result<Void, LocationEngineError> = .failure(.locationSet)
         queue.sync {
             let code = setLocked(latitude: latitude, longitude: longitude, pairingPath: pairingPath, deviceIP: deviceIP)
