@@ -8,6 +8,7 @@ final class PairingStore: ObservableObject {
     @Published var lastError: String?
 
     static let fileName = "rp_pairing_file.plist"
+    private static let maximumPairingFileSize = 5 * 1_024 * 1_024
     static let supportedTypes: [UTType] = {
         var types: [UTType] = [
             .item,          // anything — sideloaded plists often lack a proper UTI
@@ -84,6 +85,11 @@ final class PairingStore: ObservableObject {
         let accessing = sourceURL.startAccessingSecurityScopedResource()
         defer { if accessing { sourceURL.stopAccessingSecurityScopedResource() } }
 
+        if let attributes = try? FileManager.default.attributesOfItem(atPath: sourceURL.path),
+           let size = attributes[.size] as? NSNumber,
+           size.intValue > Self.maximumPairingFileSize {
+            throw PairingImportError.fileTooLarge
+        }
         let data = try Data(contentsOf: sourceURL)
         try installPairingData(data)
     }
@@ -121,6 +127,9 @@ final class PairingStore: ObservableObject {
     }
 
     private func installPairingData(_ data: Data) throws {
+        guard data.count <= Self.maximumPairingFileSize else {
+            throw PairingImportError.fileTooLarge
+        }
         guard looksLikePairingPlist(data) else {
             throw PairingImportError.invalidContents
         }
@@ -163,6 +172,7 @@ final class PairingStore: ObservableObject {
 enum PairingImportError: LocalizedError {
     case emptyClipboard
     case invalidContents
+    case fileTooLarge
 
     var errorDescription: String? {
         switch self {
@@ -170,6 +180,8 @@ enum PairingImportError: LocalizedError {
             return "Clipboard is empty. Copy your RPPairing plist text (or the file), then try Paste again."
         case .invalidContents:
             return "That doesn’t look like an RPPairing plist. Copy the full pairing file contents and try again."
+        case .fileTooLarge:
+            return "The pairing file is too large (maximum 5 MB). Choose the original RPPairing file and try again."
         }
     }
 }
