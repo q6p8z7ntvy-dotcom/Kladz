@@ -29,9 +29,9 @@ struct LocusEasterEggView: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(red: 0.06, green: 0.09, blue: 0.08),
+                        Color(red: 0.08, green: 0.05, blue: 0.15),
                         Color.black,
-                        Color(red: 0.08, green: 0.06, blue: 0.04)
+                        Color(red: 0.12, green: 0.08, blue: 0.20)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -67,7 +67,7 @@ struct LocusEasterEggView: View {
                     }
                     Spacer()
 
-                    Text("close enough")
+                    Text("KLADZ • MOVE FREELY")
                         .font(.caption.italic())
                         .foregroundStyle(.white.opacity(0.35))
                         .padding(.bottom, 28)
@@ -87,7 +87,7 @@ struct LocusEasterEggView: View {
         let y = size.height * critter.band + bob
         let wobble = sin(time * (4 + Double(index) * 0.3)) * 10
 
-        return Text("🦗")
+        return Text(index.isMultiple(of: 3) ? "✦" : "📍")
             .font(.system(size: critter.size))
             .rotationEffect(.degrees(wobble))
             .scaleEffect(x: critter.reverse ? -1 : 1, y: 1)
