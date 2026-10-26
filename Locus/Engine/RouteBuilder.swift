@@ -139,7 +139,8 @@ enum GPXCodec {
     }
 
     static func export(_ coordinates: [CLLocationCoordinate2D], name: String = "Kladz Route") -> String {
-        let safeName = escapeXML(name)
+        // Route names can originate from caller-provided text; keep metadata bounded.
+        let safeName = escapeXML(String(name.prefix(100)))
         var body = """
         <?xml version="1.0" encoding="UTF-8"?>
         <gpx version="1.1" creator="Kladz" xmlns="http://www.topografix.com/GPX/1/1">
@@ -156,6 +157,8 @@ enum GPXCodec {
             (-90.0...90.0).contains($0.latitude) &&
             (-180.0...180.0).contains($0.longitude)
         }
+        // Reserve the expected output size to avoid repeated reallocations on large GPX exports.
+        body.reserveCapacity(body.utf8.count + safeCoordinates.count * 72 + 64)
         for c in safeCoordinates {
             body += String(
                 format: "      <trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>\n",
