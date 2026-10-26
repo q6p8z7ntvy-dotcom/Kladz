@@ -131,7 +131,12 @@ enum GPXCodec {
 
         """
         for c in coordinates {
-            body += String(format: "      <trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>\n", c.latitude, c.longitude)
+            body += String(
+                format: "      <trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>\n",
+                locale: Locale(identifier: "en_US_POSIX"),
+                c.latitude,
+                c.longitude
+            )
         }
         body += """
             </trkseg>
