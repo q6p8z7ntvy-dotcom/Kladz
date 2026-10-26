@@ -48,37 +48,9 @@ final class PairingStore: ObservableObject {
         hasPairingFile = FileManager.default.fileExists(atPath: pairingURL.path)
     }
 
-    /// Pairing material is a credential. Use iOS Data Protection and keep it out of backups.
-    /// This protection class permits background use after the first unlock following reboot.
+    /// Apply credential protections to the pairing directory and, when present, file.
     private func applyDataProtection() {
-        try? FileManager.default.setAttributes(
-            [
-                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
-                .posixPermissions: 0o700
-            ],
-            ofItemAtPath: directoryURL.path
-        )
-
-        // Exclude the parent directory too, so a newly generated pairing file is not
-        // briefly eligible for backup before refresh() applies per-file attributes.
-        var directoryValues = URLResourceValues()
-        directoryValues.isExcludedFromBackup = true
-        var protectedDirectory = directoryURL
-        try? protectedDirectory.setResourceValues(directoryValues)
-
-        guard FileManager.default.fileExists(atPath: pairingURL.path) else { return }
-        try? FileManager.default.setAttributes(
-            [
-                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
-                .posixPermissions: 0o600
-            ],
-            ofItemAtPath: pairingURL.path
-        )
-
-        var values = URLResourceValues()
-        values.isExcludedFromBackup = true
-        var protectedURL = pairingURL
-        try? protectedURL.setResourceValues(values)
+        try? PairingCredentialProtection.apply(to: pairingURL)
     }
 
     func importPairing(from sourceURL: URL) throws {
@@ -183,5 +155,43 @@ enum PairingImportError: LocalizedError {
         case .fileTooLarge:
             return "The pairing file is too large (maximum 5 MB). Choose the original RPPairing file and try again."
         }
+    }
+}
+
+
+/// Shared protection policy for credentials created by either import or on-device pairing.
+enum PairingCredentialProtection {
+    static func applyDirectory(at directoryURL: URL) throws {
+        try FileManager.default.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.setAttributes(
+            [
+                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
+                .posixPermissions: 0o700
+            ],
+            ofItemAtPath: directoryURL.path
+        )
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var directory = directoryURL
+        try directory.setResourceValues(values)
+    }
+
+    static func apply(to fileURL: URL) throws {
+        try applyDirectory(at: fileURL.deletingLastPathComponent())
+        guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
+        try FileManager.default.setAttributes(
+            [
+                .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication,
+                .posixPermissions: 0o600
+            ],
+            ofItemAtPath: fileURL.path
+        )
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var file = fileURL
+        try file.setResourceValues(values)
     }
 }
