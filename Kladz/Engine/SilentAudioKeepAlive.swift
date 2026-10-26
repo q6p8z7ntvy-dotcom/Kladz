@@ -37,7 +37,7 @@ final class SilentAudioKeepAlive {
     }
 
     private static func writeSilentWAV() throws -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("locus-silence.wav")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("kladz-silence.wav")
         if FileManager.default.fileExists(atPath: url.path) { return url }
 
         let sampleRate: Int = 8000

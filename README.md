@@ -66,14 +66,14 @@ Building an unsigned IPA from source does not require an Apple Developer account
 
 ```bash
 xcodegen generate
-open Locus.xcodeproj
+open kladz.xcodeproj
 ```
 
-Or build from the CLI (the generated project keeps its legacy `Locus.xcodeproj` filename for compatibility; the app target/scheme is `Kladz`. The legacy `Locus` scheme is also retained for existing IPA workflows. Replace with your Team ID from [developer.apple.com/account](https://developer.apple.com/account) → Membership):
+Or build from the CLI (the generated project keeps its legacy `kladz.xcodeproj` filename for compatibility; the app target/scheme is `Kladz`. The legacy `kladz` scheme is also retained for existing IPA workflows. Replace with your Team ID from [developer.apple.com/account](https://developer.apple.com/account) → Membership):
 
 ```bash
 xcodegen generate
-xcodebuild -project Locus.xcodeproj -scheme Kladz -configuration Release \
+xcodebuild -project kladz.xcodeproj -scheme Kladz -configuration Release \
   -destination 'generic/platform=iOS' DEVELOPMENT_TEAM=YOUR_TEAM_ID build
 ```
 
