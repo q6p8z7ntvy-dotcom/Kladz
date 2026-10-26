@@ -58,7 +58,7 @@ Kladz is for system-level teleporting. It isn’t a Pokémon GO client or an ant
 
 ## Build
 
-Building from source needs an Apple Developer account (free or paid) for code signing. The published IPA does **not** — just sideload it.
+Building an unsigned IPA from source does not require an Apple Developer account. Installing it on a device still requires a compatible sideloading tool to sign it; a paid developer account is not generally required for personal sideloading.
 
 1. Install [XcodeGen](https://github.com/yonaskolb/XcodeGen) if needed: `brew install xcodegen`
 2. Set your **Team ID** in `project.yml` (`DEVELOPMENT_TEAM`), *or* pick your team under Xcode → Signing & Capabilities after generating the project.
