@@ -54,7 +54,8 @@ final class PairOnDeviceService: ObservableObject {
                 at: pairingStore.pairingURL.deletingLastPathComponent()
             )
         } catch {
-            phase = .failed("Could not secure the pairing folder: \(error.localizedDescription)")
+            // start() already enabled background keep-alives; clean them up on failure.
+            handleFailure("Could not secure the pairing folder: \(error.localizedDescription)")
             return
         }
 
@@ -250,6 +251,8 @@ final class PairOnDeviceService: ObservableObject {
                 message = "Failed to write pairing file"
             }
             idevice_error_free(writeError)
+            // The native writer may have created a partial file before failing.
+            try? FileManager.default.removeItem(atPath: outputPath)
             DispatchQueue.main.async {
                 box.owner?.handleFailure("Paired, but failed to save file: \(message)")
             }
