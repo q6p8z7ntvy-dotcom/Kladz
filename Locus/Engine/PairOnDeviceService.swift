@@ -55,7 +55,7 @@ final class PairOnDeviceService: ObservableObject {
             )
         } catch {
             // start() already enabled background keep-alives; clean them up on failure.
-            handleFailure("Could not secure the pairing folder: \(error.localizedDescription)")
+            handleFailure("Kladz could not apply the required protection to the pairing folder. Check available storage and try again.")
             return
         }
 
@@ -217,14 +217,12 @@ final class PairOnDeviceService: ObservableObject {
         }
 
         if let err {
-            let message: String
-            if let cMessage = err.pointee.message {
-                message = String(cString: cMessage)
-            } else {
-                message = "Unknown pairing error (\(err.pointee.code))"
-            }
+            // Native error text may contain implementation details or sensitive paths.
+            // Keep the UI message stable and avoid surfacing raw FFI diagnostics.
             idevice_error_free(err)
-            DispatchQueue.main.async { box.owner?.handleFailure(message) }
+            DispatchQueue.main.async {
+                box.owner?.handleFailure("Pairing could not be completed. Check that Developer Mode is open and try again.")
+            }
             return
         }
 
@@ -244,17 +242,11 @@ final class PairOnDeviceService: ObservableObject {
             rp_pairing_file_write(outFile, path)
         }
         if let writeError {
-            let message: String
-            if let cMessage = writeError.pointee.message {
-                message = String(cString: cMessage)
-            } else {
-                message = "Failed to write pairing file"
-            }
             idevice_error_free(writeError)
             // The native writer may have created a partial file before failing.
             try? FileManager.default.removeItem(atPath: outputPath)
             DispatchQueue.main.async {
-                box.owner?.handleFailure("Paired, but failed to save file: \(message)")
+                box.owner?.handleFailure("Pairing completed, but Kladz could not save the pairing file. Check available storage and try again.")
             }
             return
         }
@@ -264,7 +256,7 @@ final class PairOnDeviceService: ObservableObject {
         } catch {
             try? FileManager.default.removeItem(atPath: outputPath)
             DispatchQueue.main.async {
-                box.owner?.handleFailure("Pairing completed, but Kladz could not secure the pairing file: \(error.localizedDescription)")
+                box.owner?.handleFailure("Pairing completed, but Kladz could not apply the required protection to the pairing file. The file was removed; please try again.")
             }
             return
         }
