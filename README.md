@@ -77,6 +77,12 @@ xcodebuild -project Locus.xcodeproj -scheme Kladz -configuration Release \
   -destination 'generic/platform=iOS' DEVELOPMENT_TEAM=YOUR_TEAM_ID build
 ```
 
+### Build an IPA with GitHub Actions
+
+Open the repository's **Actions → Build Kladz IPA → Run workflow**, or open a pull request to `main`. Download the `Kladz-unsigned-IPA` artifact from the completed run. A push of a `v*` tag also attaches the IPA to that GitHub Release.
+
+The workflow creates an **unsigned** IPA because the repository does not contain your Apple signing certificate or provisioning profile. Import it into your sideloading tool (for example Feather, SideStore, or AltStore) so that tool can sign it for your device. The artifact by itself is not a ready-to-install signed IPA.
+
 ## License
 
 MIT. `Vendor/idevice` contains the idevice FFI (MIT). Kladz is an independent open-source project. It is not affiliated with Apple or the idevice project maintainers.
