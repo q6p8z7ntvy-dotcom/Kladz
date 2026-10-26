@@ -97,6 +97,9 @@ final class PairOnDeviceService: ObservableObject {
         minVer: String
     ) {
         debugPort = port
+        advertiser.onFailure = { [weak self] in
+            self?.handleFailure("Could not start local pairing discovery. Check that local network access is allowed, then try again.")
+        }
         advertiser.publish(
             port: port,
             serviceIdentifier: serviceIdentifier,
