@@ -62,6 +62,10 @@ targets:
         SWIFT_OBJC_BRIDGING_HEADER: ""
 
 schemes:
+  Kladz:
+    build:
+      targets:
+        Kladz: all
   # Keep the previous scheme available for existing IPA workflows.
   Locus:
     build:
