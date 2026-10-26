@@ -456,9 +456,27 @@ struct MapHomeView: View {
         do {
             try Data(gpx.utf8).write(to: url, options: .atomic)
             let av = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            av.completionWithItemsHandler = { _, _, _, _ in
+                // The share sheet has finished using the temporary export.
+                try? FileManager.default.removeItem(at: url)
+            }
             if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let root = scene.keyWindow?.rootViewController {
+                // iPad requires a popover anchor for activity sheets.
+                if let popover = av.popoverPresentationController {
+                    popover.sourceView = root.view
+                    popover.sourceRect = CGRect(
+                        x: root.view.bounds.midX,
+                        y: root.view.bounds.midY,
+                        width: 0,
+                        height: 0
+                    )
+                    popover.permittedArrowDirections = []
+                }
                 root.present(av, animated: true)
+            } else {
+                try? FileManager.default.removeItem(at: url)
+                session.lastError = "Could not open the share sheet."
             }
         } catch {
             session.lastError = error.localizedDescription
