@@ -119,9 +119,8 @@ final class PairingStore: ObservableObject {
         }
 
         try PairingCredentialProtection.applyDirectory(at: directoryURL)
-        if FileManager.default.fileExists(atPath: pairingURL.path) {
-            try FileManager.default.removeItem(at: pairingURL)
-        }
+        // Atomic replacement preserves the previous valid pairing if the new write fails.
+        // Do not delete the destination first: that creates an avoidable loss-of-credentials window.
         try data.write(to: pairingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
         do {
             try PairingCredentialProtection.apply(to: pairingURL)
