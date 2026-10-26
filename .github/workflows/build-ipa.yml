@@ -12,7 +12,7 @@ on:
       - "v*"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: kladz-ipa-${{ github.ref }}
@@ -80,9 +80,23 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+
+  publish-release:
+    name: Publish versioned IPA
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-ipa
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: Kladz-unsigned-IPA
+          path: release-assets
+
       - name: Attach IPA to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/Kladz-unsigned.ipa
+          files: release-assets/Kladz-unsigned.ipa
           generate_release_notes: true
