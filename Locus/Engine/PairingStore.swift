@@ -69,12 +69,15 @@ final class PairingStore: ObservableObject {
         let accessing = sourceURL.startAccessingSecurityScopedResource()
         defer { if accessing { sourceURL.stopAccessingSecurityScopedResource() } }
 
-        if let attributes = try? FileManager.default.attributesOfItem(atPath: sourceURL.path),
-           let size = attributes[.size] as? NSNumber,
-           size.uint64Value > UInt64(Self.maximumPairingFileSize) {
+        // Read at most one byte beyond the limit so a misleading/missing file-size
+        // attribute cannot cause an arbitrarily large allocation during import.
+        let handle = try FileHandle(forReadingFrom: sourceURL)
+        defer { try? handle.close() }
+        let limit = Self.maximumPairingFileSize
+        let data = try handle.read(upToCount: limit + 1) ?? Data()
+        guard data.count <= limit else {
             throw PairingImportError.fileTooLarge
         }
-        let data = try Data(contentsOf: sourceURL)
         try installPairingData(data)
     }
 
