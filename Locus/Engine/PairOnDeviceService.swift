@@ -116,7 +116,7 @@ final class PairOnDeviceService: ObservableObject {
     fileprivate func handlePIN(_ value: String) {
         pin = value
         phase = .awaitingPIN(value)
-        Self.postPINNotification(value)
+        Self.postPINNotification()
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
@@ -164,7 +164,7 @@ final class PairOnDeviceService: ObservableObject {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
-    private static func postPINNotification(_ pin: String) {
+    private static func postPINNotification() {
         let content = UNMutableNotificationContent()
         content.title = "Kladz pairing code"
         // Never put the pairing secret in a lock-screen notification preview.
