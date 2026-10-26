@@ -1,16 +1,14 @@
 import SwiftUI
 
-/// Kladz visual system: midnight surfaces, electric violet actions, and signal-lime highlights.
+/// Kladz visual system: clean paper surfaces, deep ocean blue, and warm amber.
 enum KladzTheme {
-    /// Primary action and map-route color — vivid violet with strong contrast on dark surfaces.
-    static let accent = Color(red: 0.58, green: 0.40, blue: 1.00)
-    /// Secondary action / drawn route color — bright signal lime.
-    static let accentSecondary = Color(red: 0.78, green: 0.96, blue: 0.32)
-    static let danger = Color(red: 1.00, green: 0.30, blue: 0.39)
-    static let panelStroke = Color.white.opacity(0.14)
-    static let statusGood = Color(red: 0.30, green: 0.91, blue: 0.66)
-    static let statusWarn = Color(red: 1.00, green: 0.76, blue: 0.28)
-    static let statusBad = Color(red: 1.00, green: 0.30, blue: 0.39)
+    static let accent = Color(red: 0.06, green: 0.32, blue: 0.43)
+    static let accentSecondary = Color(red: 1.00, green: 0.67, blue: 0.29)
+    static let danger = Color(red: 0.82, green: 0.18, blue: 0.22)
+    static let panelStroke = Color.black.opacity(0.09)
+    static let statusGood = Color(red: 0.08, green: 0.52, blue: 0.36)
+    static let statusWarn = Color(red: 0.78, green: 0.45, blue: 0.08)
+    static let statusBad = Color(red: 0.82, green: 0.18, blue: 0.22)
 }
 
 enum KladzGlassStyle {
@@ -19,7 +17,6 @@ enum KladzGlassStyle {
     case interactive
 }
 
-/// Material-based glass styling, compatible with the Xcode 16 / iOS 18 SDK used in CI.
 struct KladzGlassModifier<S: Shape>: ViewModifier {
     var style: KladzGlassStyle
     var shape: S
@@ -28,9 +25,9 @@ struct KladzGlassModifier<S: Shape>: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background {
-                shape.fill(.ultraThinMaterial)
+                shape.fill(.regularMaterial)
                 if let tint {
-                    shape.fill(tint.opacity(style == .clear ? 0.22 : 0.55))
+                    shape.fill(tint.opacity(style == .clear ? 0.12 : 0.22))
                 }
             }
             .overlay {

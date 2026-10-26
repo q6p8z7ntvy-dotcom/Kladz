@@ -5,11 +5,12 @@ struct KladzApp: App {
     init() {
         KladzDefaultsMigration.run()
     }
+
     @StateObject private var session = SpoofSession()
     @StateObject private var pairing = PairingStore()
+    @StateObject private var license = LicenseStore()
     @AppStorage(SetupGate.defaultsKey) private var setupComplete = false
 
-    /// Map when setup finished, or when already paired outside this walkthrough.
     private var showMap: Bool {
         setupComplete || (pairing.hasPairingFile && !SetupGate.isInProgress)
     }
@@ -17,7 +18,9 @@ struct KladzApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if showMap {
+                if !license.isActivated {
+                    LicenseActivationView(license: license)
+                } else if showMap {
                     RootView()
                 } else {
                     SetupFlowView(initialStep: SetupGate.initialStep(hasPairingFile: pairing.hasPairingFile)) {
@@ -28,10 +31,9 @@ struct KladzApp: App {
             }
             .environmentObject(session)
             .environmentObject(pairing)
-            .preferredColorScheme(.dark)
-            .onOpenURL { url in
-                handleIncoming(url)
-            }
+            .environment(\.locale, Locale(identifier: "sv_SE"))
+            .preferredColorScheme(.light)
+            .onOpenURL { handleIncoming($0) }
             .onAppear {
                 if !setupComplete, pairing.hasPairingFile, !SetupGate.isInProgress {
                     SetupGate.markComplete()
@@ -55,20 +57,15 @@ extension Notification.Name {
     static let kladzImportGPX = Notification.Name("kladzImportGPX")
 }
 
-
-/// Migrates preferences from the previous internal key namespace without exposing
-/// the former product name in source strings or losing existing user settings.
 private enum KladzDefaultsMigration {
     static func run() {
         let defaults = UserDefaults.standard
         let legacyPrefix = ["lo", "cus"].joined() + "."
         let keys = ["targetDeviceIP", "favorites", "recents", "setupComplete", "setupInProgress"]
-
         for suffix in keys {
             let legacyKey = legacyPrefix + suffix
             let currentKey = "kladz." + suffix
-            if defaults.object(forKey: currentKey) == nil,
-               let value = defaults.object(forKey: legacyKey) {
+            if defaults.object(forKey: currentKey) == nil, let value = defaults.object(forKey: legacyKey) {
                 defaults.set(value, forKey: currentKey)
             }
             defaults.removeObject(forKey: legacyKey)
