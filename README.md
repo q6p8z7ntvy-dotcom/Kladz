@@ -61,19 +61,18 @@ Kladz is for system-level teleporting. It isn’t a Pokémon GO client or an ant
 Building an unsigned IPA from source does not require an Apple Developer account. Installing it on a device still requires a compatible sideloading tool to sign it; a paid developer account is not generally required for personal sideloading.
 
 1. Install [XcodeGen](https://github.com/yonaskolb/XcodeGen) if needed: `brew install xcodegen`
-2. Set your **Team ID** in `project.yml` (`DEVELOPMENT_TEAM`), *or* pick your team under Xcode → Signing & Capabilities after generating the project.
-3. Generate and open:
+2. Set your **Team ID** in `project.yml` (`DEVELOPMENT_TEAM`), or choose your team in Xcode under **Signing & Capabilities**.
+3. Generate and open the project:
 
 ```bash
 xcodegen generate
-open kladz.xcodeproj
+open Kladz.xcodeproj
 ```
 
-Or build from the CLI (the generated project keeps its legacy `kladz.xcodeproj` filename for compatibility; the app target/scheme is `Kladz`. The legacy `kladz` scheme is also retained for existing IPA workflows. Replace with your Team ID from [developer.apple.com/account](https://developer.apple.com/account) → Membership):
+Build from the command line:
 
 ```bash
-xcodegen generate
-xcodebuild -project kladz.xcodeproj -scheme Kladz -configuration Release \
+xcodebuild -project Kladz.xcodeproj -scheme Kladz -configuration Release \
   -destination 'generic/platform=iOS' DEVELOPMENT_TEAM=YOUR_TEAM_ID build
 ```
 
