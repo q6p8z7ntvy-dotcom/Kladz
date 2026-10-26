@@ -54,7 +54,7 @@ final class PairOnDeviceService: ObservableObject {
                 at: pairingStore.pairingURL.deletingLastPathComponent()
             )
         } catch {
-            phase = .failed("Could not secure the pairing folder: \\(error.localizedDescription)")
+            phase = .failed("Could not secure the pairing folder: \(error.localizedDescription)")
             return
         }
 
@@ -261,7 +261,7 @@ final class PairOnDeviceService: ObservableObject {
         } catch {
             try? FileManager.default.removeItem(atPath: outputPath)
             DispatchQueue.main.async {
-                box.owner?.handleFailure("Pairing completed, but Kladz could not secure the pairing file: \\(error.localizedDescription)")
+                box.owner?.handleFailure("Pairing completed, but Kladz could not secure the pairing file: \(error.localizedDescription)")
             }
             return
         }
