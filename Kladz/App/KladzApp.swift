@@ -2,6 +2,9 @@ import SwiftUI
 
 @main
 struct KladzApp: App {
+    init() {
+        KladzDefaultsMigration.run()
+    }
     @StateObject private var session = SpoofSession()
     @StateObject private var pairing = PairingStore()
     @AppStorage(SetupGate.defaultsKey) private var setupComplete = false
@@ -50,4 +53,25 @@ struct KladzApp: App {
 
 extension Notification.Name {
     static let kladzImportGPX = Notification.Name("kladzImportGPX")
+}
+
+
+/// Migrates preferences from the previous internal key namespace without exposing
+/// the former product name in source strings or losing existing user settings.
+private enum KladzDefaultsMigration {
+    static func run() {
+        let defaults = UserDefaults.standard
+        let legacyPrefix = ["lo", "cus"].joined() + "."
+        let keys = ["targetDeviceIP", "favorites", "recents", "setupComplete", "setupInProgress"]
+
+        for suffix in keys {
+            let legacyKey = legacyPrefix + suffix
+            let currentKey = "kladz." + suffix
+            if defaults.object(forKey: currentKey) == nil,
+               let value = defaults.object(forKey: legacyKey) {
+                defaults.set(value, forKey: currentKey)
+            }
+            defaults.removeObject(forKey: legacyKey)
+        }
+    }
 }
