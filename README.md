@@ -66,14 +66,14 @@ Building from source needs an Apple Developer account (free or paid) for code si
 
 ```bash
 xcodegen generate
-open Kladz.xcodeproj
+open Locus.xcodeproj
 ```
 
-Or build from the CLI (replace with your Team ID from [developer.apple.com/account](https://developer.apple.com/account) → Membership):
+Or build from the CLI (the generated project keeps its legacy `Locus.xcodeproj` filename for compatibility; the app target/scheme is `Kladz`. The legacy `Locus` scheme is also retained for existing IPA workflows. Replace with your Team ID from [developer.apple.com/account](https://developer.apple.com/account) → Membership):
 
 ```bash
 xcodegen generate
-xcodebuild -project Kladz.xcodeproj -scheme Kladz -configuration Release \
+xcodebuild -project Locus.xcodeproj -scheme Kladz -configuration Release \
   -destination 'generic/platform=iOS' DEVELOPMENT_TEAM=YOUR_TEAM_ID build
 ```
 
