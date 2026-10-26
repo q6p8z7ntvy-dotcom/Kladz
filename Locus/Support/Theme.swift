@@ -1,13 +1,16 @@
 import SwiftUI
 
+/// Kladz visual system: midnight surfaces, electric violet actions, and signal-lime highlights.
 enum LocusTheme {
-    static let accent = Color(red: 0.35, green: 0.78, blue: 0.72)
-    static let accentSecondary = Color(red: 0.95, green: 0.55, blue: 0.28)
-    static let danger = Color(red: 0.92, green: 0.32, blue: 0.36)
-    static let panelStroke = Color.white.opacity(0.12)
-    static let statusGood = Color(red: 0.30, green: 0.86, blue: 0.55)
-    static let statusWarn = Color(red: 0.98, green: 0.78, blue: 0.28)
-    static let statusBad = Color(red: 0.92, green: 0.32, blue: 0.36)
+    /// Primary action and map-route color — vivid violet with strong contrast on dark surfaces.
+    static let accent = Color(red: 0.58, green: 0.40, blue: 1.00)
+    /// Secondary action / drawn route color — bright signal lime.
+    static let accentSecondary = Color(red: 0.78, green: 0.96, blue: 0.32)
+    static let danger = Color(red: 1.00, green: 0.30, blue: 0.39)
+    static let panelStroke = Color.white.opacity(0.14)
+    static let statusGood = Color(red: 0.30, green: 0.91, blue: 0.66)
+    static let statusWarn = Color(red: 1.00, green: 0.76, blue: 0.28)
+    static let statusBad = Color(red: 1.00, green: 0.30, blue: 0.39)
 }
 
 enum LocusGlassStyle {
