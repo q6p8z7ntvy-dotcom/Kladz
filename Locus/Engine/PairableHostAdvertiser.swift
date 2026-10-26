@@ -53,6 +53,7 @@ final class PairableHostAdvertiser {
                     self?.publishedPort = p
                     NSLog("[Kladz] NWListener ready on port %u (relay → 127.0.0.1:%u)", p, port)
                 case .failed(let error):
+                    self?.publishedPort = 0
                     NSLog("[Kladz] NWListener failed: %@", String(describing: error))
                 case .cancelled:
                     NSLog("[Kladz] NWListener cancelled")
@@ -82,6 +83,8 @@ final class PairableHostAdvertiser {
         activeRelay = nil
         listener?.cancel()
         listener = nil
+        publishedPort = 0
+        rustLoopbackPort = 0
     }
 
     private func relay(_ inbound: NWConnection) {
@@ -108,6 +111,8 @@ private final class RelayPipe {
     private let inbound: NWConnection
     private let outbound: NWConnection
     private let queue = DispatchQueue(label: "locus.pairable.relay")
+    private let cancellationLock = NSLock()
+    private var isCancelled = false
 
     init(inbound: NWConnection, outbound: NWConnection) {
         self.inbound = inbound
@@ -140,6 +145,14 @@ private final class RelayPipe {
     }
 
     func cancel() {
+        cancellationLock.lock()
+        let shouldCancel = !isCancelled
+        isCancelled = true
+        cancellationLock.unlock()
+
+        // NWConnection cancellation can trigger state callbacks on this same
+        // pipe. Make teardown idempotent to avoid recursive cancellation work.
+        guard shouldCancel else { return }
         inbound.cancel()
         outbound.cancel()
     }
