@@ -48,15 +48,22 @@ final class PairableHostAdvertiser {
             )
 
             listener.stateUpdateHandler = { [weak self] state in
+                // A cancelled listener may deliver a late state callback after a
+                // new pairing attempt has installed its own listener. Ignore stale
+                // events so they cannot reset the new session or report false errors.
+                guard let self, self.listener === listener else { return }
                 switch state {
                 case .ready:
                     let p = listener.port?.rawValue ?? 0
-                    self?.publishedPort = p
+                    self.publishedPort = p
                     NSLog("[Kladz] NWListener ready on port %u (relay → 127.0.0.1:%u)", p, port)
                 case .failed(let error):
-                    self?.publishedPort = 0
+                    self.publishedPort = 0
                     NSLog("[Kladz] NWListener failed: %@", String(describing: error))
-                    DispatchQueue.main.async { [weak self] in self?.onFailure?() }
+                    DispatchQueue.main.async { [weak self, weak listener] in
+                        guard let self, let listener, self.listener === listener else { return }
+                        self.onFailure?()
+                    }
                 case .cancelled:
                     NSLog("[Kladz] NWListener cancelled")
                 default:
@@ -64,12 +71,16 @@ final class PairableHostAdvertiser {
                 }
             }
 
-            listener.newConnectionHandler = { [weak self] connection in
+            listener.newConnectionHandler = { [weak self, weak listener] connection in
+                guard let self, let listener, self.listener === listener else {
+                    connection.cancel()
+                    return
+                }
                 NSLog(
                     "[Kladz] NWListener accepted %@",
                     String(describing: connection.endpoint)
                 )
-                self?.relay(connection)
+                self.relay(connection)
             }
 
             listener.start(queue: .global(qos: .userInitiated))
