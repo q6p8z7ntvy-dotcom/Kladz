@@ -13,13 +13,15 @@ struct SettingsView: View {
     @State private var localDevVPNInstalled = LocalDevVPN.isInstalled
     @Environment(\.scenePhase) private var scenePhase
 
-    private func saveTunnelIP() {
+    @discardableResult
+    private func saveTunnelIP() -> Bool {
         guard TunnelConfig.setTargetIP(tunnelIP) else {
             session.lastError = "Enter a valid IPv4 address, for example 10.7.0.1."
-            return
+            return false
         }
         tunnelIP = TunnelConfig.targetIP
         session.lastError = nil
+        return true
     }
 
     private var supportsOnDevicePairing: Bool {
@@ -139,8 +141,9 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
-                        TunnelConfig.setTargetIP(tunnelIP)
-                        dismiss()
+                        if saveTunnelIP() {
+                            dismiss()
+                        }
                     }
                 }
             }
