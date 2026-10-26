@@ -43,7 +43,7 @@ struct SettingsView: View {
                         Text(pairing.hasPairingFile ? "RPPairing file installed" : "No pairing file")
                     } icon: {
                         Image(systemName: pairing.hasPairingFile ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                            .foregroundStyle(pairing.hasPairingFile ? LocusTheme.statusGood : LocusTheme.statusWarn)
+                            .foregroundStyle(pairing.hasPairingFile ? KladzTheme.statusGood : KladzTheme.statusWarn)
                     }
 
                     if supportsOnDevicePairing {
@@ -84,7 +84,7 @@ struct SettingsView: View {
                         }
                     LabeledContent("Status") {
                         Text(LocalDevVPN.isConnected ? "Connected" : "Not connected")
-                            .foregroundStyle(LocalDevVPN.isConnected ? LocusTheme.statusGood : LocusTheme.statusWarn)
+                            .foregroundStyle(LocalDevVPN.isConnected ? KladzTheme.statusGood : KladzTheme.statusWarn)
                     }
                     Button("Save tunnel IP") {
                         saveTunnelIP()
@@ -166,7 +166,7 @@ struct SettingsView: View {
                     .environmentObject(pairing)
             }
             .fullScreenCover(isPresented: $showNameEasterEgg) {
-                LocusEasterEggView()
+                KladzEasterEggView()
             }
             .onAppear {
                 localDevVPNInstalled = LocalDevVPN.isInstalled

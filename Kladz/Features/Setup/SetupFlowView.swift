@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// First-run walkthrough: welcome → pairing → LocalDevVPN → map.
-/// Skipped when `SetupGate.isComplete` (see `LocusApp`).
+/// Skipped when `SetupGate.isComplete` (see `KladzApp`).
 struct SetupFlowView: View {
     @EnvironmentObject private var pairing: PairingStore
     @EnvironmentObject private var session: SpoofSession
@@ -115,7 +115,7 @@ struct SetupFlowView: View {
             // Soft map-adjacent atmosphere (no flat fill).
             RadialGradient(
                 colors: [
-                    LocusTheme.accent.opacity(0.22),
+                    KladzTheme.accent.opacity(0.22),
                     Color.clear
                 ],
                 center: .topTrailing,
@@ -158,7 +158,7 @@ struct SetupFlowView: View {
         HStack(spacing: 8) {
             ForEach(Step.allCases, id: \.rawValue) { s in
                 Capsule()
-                    .fill(s.rawValue <= step.rawValue ? LocusTheme.accent : Color.white.opacity(0.12))
+                    .fill(s.rawValue <= step.rawValue ? KladzTheme.accent : Color.white.opacity(0.12))
                     .frame(height: 3)
                     .frame(maxWidth: .infinity)
             }
@@ -176,7 +176,7 @@ struct SetupFlowView: View {
             VStack(spacing: 20) {
                 Image(systemName: "location.north.circle.fill")
                     .font(.system(size: 64, weight: .light))
-                    .foregroundStyle(LocusTheme.accent)
+                    .foregroundStyle(KladzTheme.accent)
                     .symbolEffect(.pulse, options: .repeating.speed(0.4), isActive: appear)
                     .opacity(appear ? 1 : 0)
                     .scaleEffect(appear ? 1 : 0.85)
@@ -259,7 +259,7 @@ struct SetupFlowView: View {
                             .foregroundStyle(.primary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .locusGlass(.interactive, in: Capsule())
+                            .kladzGlass(.interactive, in: Capsule())
                             .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -278,7 +278,7 @@ struct SetupFlowView: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .kladzGlass(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     private func stepRow(_ n: Int, _ text: String) -> some View {
@@ -287,7 +287,7 @@ struct SetupFlowView: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(.black)
                 .frame(width: 22, height: 22)
-                .background(LocusTheme.accent, in: Circle())
+                .background(KladzTheme.accent, in: Circle())
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.primary)
@@ -304,7 +304,7 @@ struct SetupFlowView: View {
             VStack(spacing: 22) {
                 Image(systemName: "lock.shield.fill")
                     .font(.system(size: 56, weight: .light))
-                    .foregroundStyle(LocusTheme.accent)
+                    .foregroundStyle(KladzTheme.accent)
 
                 VStack(spacing: 10) {
                     Text(localDevVPNInstalled ? "Connect LocalDevVPN" : "One more app")
@@ -330,7 +330,7 @@ struct SetupFlowView: View {
                     tipRow(systemImage: "wifi", title: "First teleport on Wi‑Fi", detail: "Start your first teleport while on Wi‑Fi. After that, it can keep working on cellular.")
                 }
                 .padding(18)
-                .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .kladzGlass(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
             .padding(.horizontal, 24)
 
@@ -352,7 +352,7 @@ struct SetupFlowView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .foregroundStyle(.primary)
-                    .locusGlass(.interactive, in: Capsule())
+                    .kladzGlass(.interactive, in: Capsule())
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -370,7 +370,7 @@ struct SetupFlowView: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: systemImage)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(LocusTheme.accent)
+                .foregroundStyle(KladzTheme.accent)
                 .frame(width: 28, height: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -392,7 +392,7 @@ struct SetupFlowView: View {
                 .foregroundStyle(.black)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Capsule().fill(LocusTheme.accent))
+                .background(Capsule().fill(KladzTheme.accent))
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -402,8 +402,8 @@ struct SetupFlowView: View {
 // MARK: - Gate
 
 enum SetupGate {
-    static let defaultsKey = "locus.setupComplete"
-    static let inProgressKey = "locus.setupInProgress"
+    static let defaultsKey = "kladz.setupComplete"
+    static let inProgressKey = "kladz.setupInProgress"
 
     static var isComplete: Bool {
         UserDefaults.standard.bool(forKey: defaultsKey)
@@ -423,7 +423,7 @@ enum SetupGate {
     }
 
     /// Already paired *during* this walkthrough → LocalDevVPN page.
-    /// Fresh install → welcome. Already-paired upgrades are handled in `LocusApp`.
+    /// Fresh install → welcome. Already-paired upgrades are handled in `KladzApp`.
     static func initialStep(hasPairingFile: Bool) -> SetupFlowView.Step {
         if hasPairingFile, isInProgress { return .vpn }
         return .welcome

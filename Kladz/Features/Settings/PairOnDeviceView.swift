@@ -102,7 +102,7 @@ struct PairOnDeviceView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .kladzGlass(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func step(_ n: Int, _ text: String) -> some View {
@@ -111,7 +111,7 @@ struct PairOnDeviceView: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(.black)
                 .frame(width: 22, height: 22)
-                .background(LocusTheme.accent, in: Circle())
+                .background(KladzTheme.accent, in: Circle())
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.primary)
@@ -122,14 +122,14 @@ struct PairOnDeviceView: View {
         VStack(alignment: .leading, spacing: 6) {
             Label("If the code isn’t here yet", systemImage: "lightbulb.fill")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(LocusTheme.accentSecondary)
+                .foregroundStyle(KladzTheme.accentSecondary)
             Text("Keep the app listening while you confirm in Developer Mode. Don’t force-quit. If “Pair with Kladz” vanishes, stop/start pairing and reopen Developer Mode.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(LocusTheme.accentSecondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(KladzTheme.accentSecondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     @ViewBuilder
@@ -162,7 +162,7 @@ struct PairOnDeviceView: View {
                     .font(.system(size: 48, weight: .bold, design: .rounded))
                     .tracking(10)
                     .monospacedDigit()
-                    .foregroundStyle(LocusTheme.accent)
+                    .foregroundStyle(KladzTheme.accent)
                     .textSelection(.enabled)
                 Text("Second prompt only — after your unlock passcode.")
                     .font(.caption)
@@ -171,7 +171,7 @@ struct PairOnDeviceView: View {
             case .succeeded:
                 Image(systemName: "checkmark.seal.fill")
                     .font(.largeTitle)
-                    .foregroundStyle(LocusTheme.statusGood)
+                    .foregroundStyle(KladzTheme.statusGood)
                 Text("Paired")
                     .font(.title3.weight(.bold))
                 Text(mode == .embedded
@@ -183,7 +183,7 @@ struct PairOnDeviceView: View {
             case .failed(let message):
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.largeTitle)
-                    .foregroundStyle(LocusTheme.statusWarn)
+                    .foregroundStyle(KladzTheme.statusWarn)
                 Text("Pairing failed")
                     .font(.title3.weight(.bold))
                 Text(message)
@@ -194,7 +194,7 @@ struct PairOnDeviceView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(24)
-        .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .kladzGlass(.regular, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     @ViewBuilder
@@ -210,7 +210,7 @@ struct PairOnDeviceView: View {
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Capsule().fill(LocusTheme.accent))
+                    .background(Capsule().fill(KladzTheme.accent))
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
@@ -227,7 +227,7 @@ struct PairOnDeviceView: View {
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Capsule().fill(LocusTheme.accent))
+                    .background(Capsule().fill(KladzTheme.accent))
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)

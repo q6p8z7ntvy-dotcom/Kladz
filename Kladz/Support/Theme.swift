@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Kladz visual system: midnight surfaces, electric violet actions, and signal-lime highlights.
-enum LocusTheme {
+enum KladzTheme {
     /// Primary action and map-route color — vivid violet with strong contrast on dark surfaces.
     static let accent = Color(red: 0.58, green: 0.40, blue: 1.00)
     /// Secondary action / drawn route color — bright signal lime.
@@ -13,15 +13,15 @@ enum LocusTheme {
     static let statusBad = Color(red: 1.00, green: 0.30, blue: 0.39)
 }
 
-enum LocusGlassStyle {
+enum KladzGlassStyle {
     case regular
     case clear
     case interactive
 }
 
 /// Material-based glass styling, compatible with the Xcode 16 / iOS 18 SDK used in CI.
-struct LocusGlassModifier<S: Shape>: ViewModifier {
-    var style: LocusGlassStyle
+struct KladzGlassModifier<S: Shape>: ViewModifier {
+    var style: KladzGlassStyle
     var shape: S
     var tint: Color?
 
@@ -34,22 +34,22 @@ struct LocusGlassModifier<S: Shape>: ViewModifier {
                 }
             }
             .overlay {
-                shape.stroke(LocusTheme.panelStroke, lineWidth: 1)
+                shape.stroke(KladzTheme.panelStroke, lineWidth: 1)
             }
             .contentShape(shape)
     }
 }
 
 extension View {
-    func locusGlass<S: Shape>(
-        _ style: LocusGlassStyle = .regular,
+    func kladzGlass<S: Shape>(
+        _ style: KladzGlassStyle = .regular,
         tint: Color? = nil,
         in shape: S
     ) -> some View {
-        modifier(LocusGlassModifier(style: style, shape: shape, tint: tint))
+        modifier(KladzGlassModifier(style: style, shape: shape, tint: tint))
     }
 
-    func locusGlass(_ style: LocusGlassStyle = .regular, tint: Color? = nil) -> some View {
-        locusGlass(style, tint: tint, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    func kladzGlass(_ style: KladzGlassStyle = .regular, tint: Color? = nil) -> some View {
+        kladzGlass(style, tint: tint, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
