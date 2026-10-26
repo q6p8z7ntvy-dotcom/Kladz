@@ -17,7 +17,7 @@ enum RouteBuilder {
         let directions = MKDirections(request: request)
         let response = try await directions.calculate()
         guard let route = response.routes.first else {
-            throw NSError(domain: "Locus", code: 1, userInfo: [NSLocalizedDescriptionKey: "No route found"])
+            throw NSError(domain: "Kladz", code: 1, userInfo: [NSLocalizedDescriptionKey: "No route found"])
         }
         return sample(polyline: route.polyline, every: 12)
     }
@@ -79,17 +79,18 @@ enum GPXCodec {
             }
         }
         guard !coords.isEmpty else {
-            throw NSError(domain: "Locus", code: 2, userInfo: [NSLocalizedDescriptionKey: "No track points found in GPX"])
+            throw NSError(domain: "Kladz", code: 2, userInfo: [NSLocalizedDescriptionKey: "No track points found in GPX"])
         }
         return coords
     }
 
-    static func export(_ coordinates: [CLLocationCoordinate2D], name: String = "Locus Route") -> String {
+    static func export(_ coordinates: [CLLocationCoordinate2D], name: String = "Kladz Route") -> String {
+        let safeName = escapeXML(name)
         var body = """
         <?xml version="1.0" encoding="UTF-8"?>
-        <gpx version="1.1" creator="Locus" xmlns="http://www.topografix.com/GPX/1/1">
+        <gpx version="1.1" creator="Kladz" xmlns="http://www.topografix.com/GPX/1/1">
           <trk>
-            <name>\(name)</name>
+            <name>\(safeName)</name>
             <trkseg>
 
         """
@@ -102,5 +103,15 @@ enum GPXCodec {
         </gpx>
         """
         return body
+    }
+
+    /// Escape reserved characters in XML text nodes so custom route names stay valid GPX.
+    private static func escapeXML(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+            .replacingOccurrences(of: "'", with: "&apos;")
     }
 }
