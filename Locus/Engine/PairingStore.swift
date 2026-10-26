@@ -58,6 +58,13 @@ final class PairingStore: ObservableObject {
             ofItemAtPath: directoryURL.path
         )
 
+        // Exclude the parent directory too, so a newly generated pairing file is not
+        // briefly eligible for backup before refresh() applies per-file attributes.
+        var directoryValues = URLResourceValues()
+        directoryValues.isExcludedFromBackup = true
+        var protectedDirectory = directoryURL
+        try? protectedDirectory.setResourceValues(directoryValues)
+
         guard FileManager.default.fileExists(atPath: pairingURL.path) else { return }
         try? FileManager.default.setAttributes(
             [
