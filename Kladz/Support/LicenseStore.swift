@@ -1,3 +1,4 @@
+import Combine
 import CryptoKit
 import Foundation
 import Security
@@ -9,8 +10,6 @@ final class LicenseStore: ObservableObject {
     @Published var errorMessage: String?
     @Published private(set) var deviceID: String
 
-    private let defaults = UserDefaults.standard
-    private let deviceIDKey = "kladz.license.deviceID"
     private let tokenService = "com.chrismack.kladz.license"
     private let tokenAccount = "activation-token"
     private let publicKeyBase64URL = "TVj5AgIVM7K3d8m18tYb_0oSOea39HmBPbqVsRqqFH0"

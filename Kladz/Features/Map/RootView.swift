@@ -165,6 +165,25 @@ struct BottomControlsView: View {
 
     var body: some View {
         VStack(spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "scope")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(KladzTheme.accent)
+                Text("KONTROLLPANEL")
+                    .font(.caption.weight(.heavy))
+                    .tracking(1.5)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(session.isSpoofing ? "AKTIV" : "REDO")
+                    .font(.caption2.weight(.heavy))
+                    .tracking(1)
+                    .foregroundStyle(session.isSpoofing ? KladzTheme.statusGood : .secondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background((session.isSpoofing ? KladzTheme.statusGood : Color.secondary).opacity(0.12), in: Capsule())
+            }
+            .padding(.horizontal, 2)
+
             if session.joystickActive {
                 JoystickPad { vector in
                     session.updateJoystick(vector: vector)

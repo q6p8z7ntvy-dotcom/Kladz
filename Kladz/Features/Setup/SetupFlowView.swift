@@ -59,7 +59,7 @@ struct SetupFlowView: View {
             }
             .padding(.bottom, 8)
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .animation(.spring(response: 0.45, dampingFraction: 0.86), value: step)
         .onAppear {
             withAnimation(.easeOut(duration: 0.7)) { appear = true }
@@ -110,7 +110,7 @@ struct SetupFlowView: View {
 
     private var background: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(red: 0.96, green: 0.97, blue: 0.95).ignoresSafeArea()
 
             // Soft map-adjacent atmosphere (no flat fill).
             RadialGradient(
@@ -148,7 +148,7 @@ struct SetupFlowView: View {
                         path.addLine(to: CGPoint(x: geo.size.width, y: y))
                     }
                 }
-                .stroke(Color.white.opacity(0.04), lineWidth: 1)
+                .stroke(KladzTheme.accent.opacity(0.07), lineWidth: 1)
             }
             .ignoresSafeArea()
         }

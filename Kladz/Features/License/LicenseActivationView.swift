@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct LicenseActivationView: View {
     @ObservedObject var license: LicenseStore
