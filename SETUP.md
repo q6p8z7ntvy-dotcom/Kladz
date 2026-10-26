@@ -2,7 +2,7 @@
 
 ## 1. Sideload the IPA
 
-Install the latest IPA from [Releases](https://github.com/q6p8z7ntvy-dotcom/kladz/releases) (or build from source) with Feather, SideStore, AltStore, Sideloadly, or LiveContainer.
+Download the IPA from [Releases](https://github.com/q6p8z7ntvy-dotcom/kladz/releases) (or build from source), then import it into Feather, SideStore, AltStore, Sideloadly, or LiveContainer. These tools handle signing for installation. GitHub Actions currently publishes an **unsigned** IPA, so the raw artifact cannot be installed directly as a signed app.
 
 Bundle ID: `com.chrismack.kladz`
 
