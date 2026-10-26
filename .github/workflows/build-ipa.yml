@@ -78,6 +78,9 @@ jobs:
           ditto "$APP_PATH" build/ipa/Payload/Kladz.app
           (cd build/ipa && /usr/bin/zip -qry ../Kladz-unsigned.ipa Payload)
           test -s build/Kladz-unsigned.ipa
+          plutil -lint "$APP_PATH/Info.plist"
+          test "$(plutil -extract CFBundleIdentifier raw -o - "$APP_PATH/Info.plist")" = "com.chrismack.kladz"
+          unzip -tq build/Kladz-unsigned.ipa
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
