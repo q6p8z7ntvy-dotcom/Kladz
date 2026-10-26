@@ -9,7 +9,7 @@ enum TunnelConfig {
     static var targetIP: String {
         let stored = UserDefaults.standard.string(forKey: defaultsKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let stored, !stored.isEmpty else { return defaultIP }
+        guard let stored, isValidIPv4(stored) else { return defaultIP }
         return stored
     }
 
