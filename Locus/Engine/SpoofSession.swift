@@ -200,9 +200,27 @@ final class SpoofSession: ObservableObject {
             lastError = "This route contains too many points or invalid coordinates."
             return
         }
+        let mode = travelMode
+        // Refuse routes whose simulated playback would run for more than a day.
+        // A valid but extremely long route should not leave a background task
+        // stepping through millions of coordinates for days.
+        var estimatedPlaybackSeconds: TimeInterval = 0
+        var estimatePrevious = coordinates[0]
+        for next in coordinates.dropFirst() {
+            let segmentDistance = CLLocation(
+                latitude: estimatePrevious.latitude,
+                longitude: estimatePrevious.longitude
+            ).distance(from: CLLocation(latitude: next.latitude, longitude: next.longitude))
+            estimatedPlaybackSeconds += segmentDistance / max(0.8, mode.baseSpeed * 0.88)
+            if estimatedPlaybackSeconds > 24 * 60 * 60 {
+                lastError = "This route would take over 24 hours at the selected speed. Shorten it or choose a faster travel mode."
+                return
+            }
+            estimatePrevious = next
+        }
+
         routeTask?.cancel()
         stopJoystick()
-        let mode = travelMode
         routeTask = Task { [weak self] in
             guard let self else { return }
             var previous = coordinates[0]
@@ -217,12 +235,21 @@ final class SpoofSession: ObservableObject {
                 speed = max(0.8, speed)
                 let stepMeters: CLLocationDistance = min(12, max(4, speed * 0.5))
                 let steps = max(1, Int(ceil(distance / stepMeters)))
+                var longitudeDelta = next.longitude - previous.longitude
+                // Interpolate across the short side of the antimeridian, not
+                // almost the entire globe, when a route crosses ±180° longitude.
+                if longitudeDelta > 180 { longitudeDelta -= 360 }
+                if longitudeDelta < -180 { longitudeDelta += 360 }
                 for i in 1...steps {
                     if Task.isCancelled { break }
                     let t = Double(i) / Double(steps)
+                    let rawLongitude = previous.longitude + longitudeDelta * t
+                    let longitude = (rawLongitude + 180)
+                        .truncatingRemainder(dividingBy: 360)
+                    let normalizedLongitude = (longitude < 0 ? longitude + 360 : longitude) - 180
                     let coord = CLLocationCoordinate2D(
                         latitude: previous.latitude + (next.latitude - previous.latitude) * t,
-                        longitude: previous.longitude + (next.longitude - previous.longitude) * t
+                        longitude: normalizedLongitude
                     )
                     let delay = stepMeters / speed
                     do {
