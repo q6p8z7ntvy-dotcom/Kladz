@@ -74,20 +74,19 @@ enum GPXCodec {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
 
-        // Check the file size before reading it into memory.
-        if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
-           let size = attributes[.size] as? NSNumber,
-           size.uint64Value > UInt64(maximumFileSize) {
+        // Read at most one byte beyond the limit. File attributes are advisory and
+        // may be absent or stale, so they must not be the only allocation guard.
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        let data = try handle.read(upToCount: maximumFileSize + 1) ?? Data()
+        guard data.count <= maximumFileSize else {
             throw NSError(
                 domain: "Kladz",
                 code: 3,
                 userInfo: [NSLocalizedDescriptionKey: "GPX file is too large (maximum 20 MB)."]
             )
         }
-
-        let data = try Data(contentsOf: url)
-        guard data.count <= maximumFileSize,
-              let text = String(data: data, encoding: .utf8) else {
+        guard let text = String(data: data, encoding: .utf8) else {
             throw NSError(
                 domain: "Kladz",
                 code: 4,
