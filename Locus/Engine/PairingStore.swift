@@ -111,7 +111,13 @@ final class PairingStore: ObservableObject {
             try FileManager.default.removeItem(at: pairingURL)
         }
         try data.write(to: pairingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-        try PairingCredentialProtection.apply(to: pairingURL)
+        do {
+            try PairingCredentialProtection.apply(to: pairingURL)
+        } catch {
+            try? FileManager.default.removeItem(at: pairingURL)
+            hasPairingFile = false
+            throw error
+        }
         hasPairingFile = true
         lastError = nil
     }
