@@ -25,7 +25,7 @@ final class PairOnDeviceService: ObservableObject {
     @Published private(set) var debugPort: UInt16?
 
     private var worker: Thread?
-    private let callbackBox = PairCallbackBox()
+    private var callbackBox = PairCallbackBox()
     private var backgroundTask = UIBackgroundTaskIdentifier.invalid
     private let keepAlive = PairingKeepAlive()
     private let audioKeepAlive = SilentAudioKeepAlive()
@@ -43,7 +43,9 @@ final class PairOnDeviceService: ObservableObject {
         phase = .advertising
         pin = nil
         debugPort = nil
-        callbackBox.owner = self
+        let box = PairCallbackBox()
+        box.owner = self
+        callbackBox = box
 
         requestNotificationPermission()
         beginKeepAlive()
@@ -60,7 +62,6 @@ final class PairOnDeviceService: ObservableObject {
         }
 
         let outputPath = pairingStore.pairingURL.path
-        let box = callbackBox
 
         worker = Thread {
             autoreleasepool {
@@ -145,6 +146,9 @@ final class PairOnDeviceService: ObservableObject {
     }
 
     private func teardown() {
+        // Detach callbacks from this session so late native callbacks cannot
+        // mutate the state of a later pairing attempt.
+        callbackBox.owner = nil
         advertiser.stop()
         endKeepAlive()
     }
