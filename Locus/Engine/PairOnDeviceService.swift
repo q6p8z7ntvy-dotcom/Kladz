@@ -167,7 +167,8 @@ final class PairOnDeviceService: ObservableObject {
     private static func postPINNotification(_ pin: String) {
         let content = UNMutableNotificationContent()
         content.title = "Kladz pairing code"
-        content.body = pin
+        // Never put the pairing secret in a lock-screen notification preview.
+        content.body = "Open Kladz to view your code."
         content.sound = .default
         if #available(iOS 15.0, *) {
             content.interruptionLevel = .timeSensitive
