@@ -1,0 +1,187 @@
+import CoreLocation
+import Foundation
+import MapKit
+
+enum RouteBuilder {
+    private static let maximumSampledPointCount = 100_000
+    static func roadRoute(
+        from start: CLLocationCoordinate2D,
+        to end: CLLocationCoordinate2D,
+        mode: TravelMode
+    ) async throws -> [CLLocationCoordinate2D] {
+        let request = MKDirections.Request()
+        request.source = MKMapItem(placemark: MKPlacemark(coordinate: start))
+        request.destination = MKMapItem(placemark: MKPlacemark(coordinate: end))
+        request.transportType = mode.mkTransportType
+        request.requestsAlternateRoutes = false
+
+        let directions = MKDirections(request: request)
+        let response = try await directions.calculate()
+        guard let route = response.routes.first else {
+            throw NSError(domain: "Kladz", code: 1, userInfo: [NSLocalizedDescriptionKey: "No route found"])
+        }
+        return sample(polyline: route.polyline, every: 12)
+    }
+
+    static func sample(polyline: MKPolyline, every meters: CLLocationDistance) -> [CLLocationCoordinate2D] {
+        var coords = [CLLocationCoordinate2D](repeating: .init(), count: polyline.pointCount)
+        polyline.getCoordinates(&coords, range: NSRange(location: 0, length: polyline.pointCount))
+        return sample(coordinates: coords, every: meters)
+    }
+
+    static func sample(coordinates: [CLLocationCoordinate2D], every meters: CLLocationDistance) -> [CLLocationCoordinate2D] {
+        guard !coordinates.isEmpty else { return [] }
+        guard coordinates.count > 1 else { return Array(coordinates.prefix(maximumSampledPointCount)) }
+        guard meters.isFinite, meters > 0 else {
+            return Array(coordinates.prefix(maximumSampledPointCount))
+        }
+
+        var sampled = [coordinates[0]]
+        for (a, b) in zip(coordinates, coordinates.dropFirst()) {
+            let remaining = maximumSampledPointCount - sampled.count
+            guard remaining > 0 else { break }
+
+            let dist = CLLocation(latitude: a.latitude, longitude: a.longitude)
+                .distance(from: CLLocation(latitude: b.latitude, longitude: b.longitude))
+            let requestedSteps = dist / meters
+            // Clamp before converting to Int: tiny intervals or very long segments must
+            // never trigger integer overflow or allocate an unbounded route array.
+            let steps: Int
+            if !requestedSteps.isFinite || requestedSteps >= Double(remaining) {
+                steps = remaining
+            } else {
+                steps = max(1, Int(ceil(requestedSteps)))
+            }
+
+            for i in 1...steps {
+                let t = Double(i) / Double(steps)
+                sampled.append(CLLocationCoordinate2D(
+                    latitude: a.latitude + (b.latitude - a.latitude) * t,
+                    longitude: a.longitude + (b.longitude - a.longitude) * t
+                ))
+            }
+            if sampled.count >= maximumSampledPointCount { break }
+        }
+        return sampled
+    }
+}
+
+enum GPXCodec {
+    private static let maximumFileSize = 20 * 1_024 * 1_024
+    private static let maximumPointCount = 100_000
+
+    static func parse(_ url: URL) throws -> [CLLocationCoordinate2D] {
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+
+        // Read at most one byte beyond the limit. File attributes are advisory and
+        // may be absent or stale, so they must not be the only allocation guard.
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        let data = try handle.read(upToCount: maximumFileSize + 1) ?? Data()
+        guard data.count <= maximumFileSize else {
+            throw NSError(
+                domain: "Kladz",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "GPX file is too large (maximum 20 MB)."]
+            )
+        }
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw NSError(
+                domain: "Kladz",
+                code: 4,
+                userInfo: [NSLocalizedDescriptionKey: "GPX must be a UTF-8 file smaller than 20 MB."]
+            )
+        }
+
+        // Only read actual GPX waypoint/route/track points, not unrelated lat/lon
+        // attributes such as metadata bounds. Lookaheads accept either attribute order.
+        let pattern = #"<(?:trkpt|rtept|wpt)\b(?=[^>]*\blat="([^"]+)")(?=[^>]*\blon="([^"]+)")[^>]*>"#
+        let regex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
+        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        var coords: [CLLocationCoordinate2D] = []
+        var exceededPointLimit = false
+
+        regex.enumerateMatches(in: text, range: range) { match, _, stop in
+            guard let match,
+                  let latRange = Range(match.range(at: 1), in: text),
+                  let lonRange = Range(match.range(at: 2), in: text),
+                  let latitude = Double(text[latRange]),
+                  let longitude = Double(text[lonRange]),
+                  latitude.isFinite,
+                  longitude.isFinite,
+                  (-90.0...90.0).contains(latitude),
+                  (-180.0...180.0).contains(longitude) else { return }
+
+            guard coords.count < maximumPointCount else {
+                exceededPointLimit = true
+                stop.pointee = true
+                return
+            }
+            coords.append(CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
+        }
+
+        guard !coords.isEmpty else {
+            throw NSError(
+                domain: "Kladz",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "No valid GPX track, route, or waypoint points were found."]
+            )
+        }
+        guard !exceededPointLimit else {
+            throw NSError(
+                domain: "Kladz",
+                code: 5,
+                userInfo: [NSLocalizedDescriptionKey: "GPX contains too many points (maximum 100,000)."]
+            )
+        }
+        return coords
+    }
+
+    static func export(_ coordinates: [CLLocationCoordinate2D], name: String = "Kladz Route") -> String {
+        // Route names can originate from caller-provided text; keep metadata bounded.
+        let safeName = escapeXML(String(name.prefix(100)))
+        var body = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <gpx version="1.1" creator="Kladz" xmlns="http://www.topografix.com/GPX/1/1">
+          <trk>
+            <name>\(safeName)</name>
+            <trkseg>
+
+        """
+        // Keep exports bounded even if a future caller supplies an oversized or
+        // malformed route. Invalid coordinates must not become NaN/Infinity in GPX.
+        let safeCoordinates = coordinates.prefix(maximumPointCount).filter {
+            $0.latitude.isFinite &&
+            $0.longitude.isFinite &&
+            (-90.0...90.0).contains($0.latitude) &&
+            (-180.0...180.0).contains($0.longitude)
+        }
+        // Reserve the expected output size to avoid repeated reallocations on large GPX exports.
+        body.reserveCapacity(body.utf8.count + safeCoordinates.count * 72 + 64)
+        for c in safeCoordinates {
+            body += String(
+                format: "      <trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>\n",
+                locale: Locale(identifier: "en_US_POSIX"),
+                c.latitude,
+                c.longitude
+            )
+        }
+        body += """
+            </trkseg>
+          </trk>
+        </gpx>
+        """
+        return body
+    }
+
+    /// Escape reserved characters in XML text nodes so custom route names stay valid GPX.
+    private static func escapeXML(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+            .replacingOccurrences(of: "'", with: "&apos;")
+    }
+}
