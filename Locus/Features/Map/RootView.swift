@@ -26,7 +26,7 @@ struct RootView: View {
         .sheet(isPresented: $showPlaces) {
             PlacesView()
         }
-        .alert("Locus", isPresented: Binding(
+        .alert("Kladz", isPresented: Binding(
             get: { session.lastError != nil },
             set: { if !$0 { session.lastError = nil } }
         )) {
