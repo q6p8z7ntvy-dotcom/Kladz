@@ -69,12 +69,12 @@ struct StatusBarView: View {
         case .notSpoofing:
             return Color.primary.opacity(0.55)
         case .connectVPN:
-            return LocusTheme.statusWarn
+            return KladzTheme.statusWarn
         case .status:
             switch session.status {
-            case .active: return LocusTheme.statusGood
-            case .connecting, .reconnecting: return LocusTheme.statusWarn
-            case .dropped: return LocusTheme.statusBad
+            case .active: return KladzTheme.statusGood
+            case .connecting, .reconnecting: return KladzTheme.statusWarn
+            case .dropped: return KladzTheme.statusBad
             case .idle: return Color.primary.opacity(0.55)
             }
         }
@@ -135,7 +135,7 @@ struct StatusBarView: View {
             if case .connectVPN = display {
                 Image(systemName: "lock.shield.fill")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(LocusTheme.accent)
+                    .foregroundStyle(KladzTheme.accent)
             } else if case .active = session.status, let sim = session.simulated {
                 Text(String(format: "%.4f, %.4f", sim.latitude, sim.longitude))
                     .font(.caption.monospaced())
@@ -146,7 +146,7 @@ struct StatusBarView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .locusGlass(.clear, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .kladzGlass(.clear, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
@@ -184,7 +184,7 @@ struct BottomControlsView: View {
                             .foregroundStyle(selected ? .black : .primary)
                             .frame(width: 44, height: 40)
                             .background(
-                                Capsule().fill(selected ? LocusTheme.accent : Color.primary.opacity(0.08))
+                                Capsule().fill(selected ? KladzTheme.accent : Color.primary.opacity(0.08))
                             )
                             .contentShape(Capsule())
                     }
@@ -214,7 +214,7 @@ struct BottomControlsView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(
-                        Capsule().fill(session.joystickActive ? LocusTheme.accentSecondary : Color.primary.opacity(0.08))
+                        Capsule().fill(session.joystickActive ? KladzTheme.accentSecondary : Color.primary.opacity(0.08))
                     )
                     .contentShape(Capsule())
                 }
@@ -230,7 +230,7 @@ struct BottomControlsView: View {
                             .frame(minWidth: 72)
                             .padding(.vertical, 12)
                             .padding(.horizontal, 8)
-                            .background(Capsule().fill(LocusTheme.danger))
+                            .background(Capsule().fill(KladzTheme.danger))
                             .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -248,7 +248,7 @@ struct BottomControlsView: View {
                             .frame(minWidth: 96)
                             .padding(.vertical, 12)
                             .padding(.horizontal, 10)
-                            .background(Capsule().fill(LocusTheme.accent))
+                            .background(Capsule().fill(KladzTheme.accent))
                             .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -257,7 +257,7 @@ struct BottomControlsView: View {
             }
         }
         .padding(14)
-        .locusGlass(.regular, in: trayShape)
+        .kladzGlass(.regular, in: trayShape)
         // Whole tray absorbs taps so near-misses don't fall through to the map.
         .contentShape(trayShape)
     }
@@ -287,7 +287,7 @@ struct IconButton: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .locusGlass(.interactive, in: Circle())
+        .kladzGlass(.interactive, in: Circle())
         .foregroundStyle(.primary)
     }
 }

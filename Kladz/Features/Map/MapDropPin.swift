@@ -17,19 +17,19 @@ struct MapDropPin: View {
                 Button(action: onRemove) {
                     Label("Remove Pin", systemImage: "trash.fill")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(LocusTheme.danger)
+                        .foregroundStyle(KladzTheme.danger)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                 }
                 .buttonStyle(.plain)
-                .locusGlass(.regular, in: Capsule())
+                .kladzGlass(.regular, in: Capsule())
                 .contentShape(Capsule())
                 .transition(.scale(scale: 0.9, anchor: .bottom).combined(with: .opacity))
             }
 
             Image(systemName: "mappin.circle.fill")
                 .symbolRenderingMode(.palette)
-                .foregroundStyle(.white, LocusTheme.accentSecondary)
+                .foregroundStyle(.white, KladzTheme.accentSecondary)
                 .font(.system(size: isDragging ? 44 : 36))
                 .shadow(color: .black.opacity(0.35), radius: isDragging ? 8 : 4, y: 2)
                 .scaleEffect(isDragging ? 1.12 : 1)

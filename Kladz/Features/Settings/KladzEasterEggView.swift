@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Full-screen easter egg: a swarm of locusts (the bugs) scurries across the void.
+/// Full-screen easter egg: a swarm of bugs (the bugs) scurries across the void.
 /// Spelling optional. Humor mandatory.
-struct LocusEasterEggView: View {
+struct KladzEasterEggView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let swarm: [Critter] = [
@@ -61,7 +61,7 @@ struct LocusEasterEggView: View {
                                 .contentShape(Circle())
                         }
                         .buttonStyle(.plain)
-                        .locusGlass(.interactive, in: Circle())
+                        .kladzGlass(.interactive, in: Circle())
                         .padding(.trailing, 16)
                         .padding(.top, 12)
                     }

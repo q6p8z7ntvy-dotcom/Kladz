@@ -93,19 +93,19 @@ struct MapHomeView: View {
                     if let sim = session.simulated {
                         Annotation("Spoof", coordinate: sim) {
                             ZStack {
-                                Circle().fill(LocusTheme.accent.opacity(0.25)).frame(width: 44, height: 44)
-                                Circle().fill(LocusTheme.accent).frame(width: 14, height: 14)
+                                Circle().fill(KladzTheme.accent.opacity(0.25)).frame(width: 44, height: 44)
+                                Circle().fill(KladzTheme.accent).frame(width: 14, height: 14)
                                     .overlay(Circle().stroke(.white, lineWidth: 2))
                             }
                         }
                     }
                     if routeCoords.count > 1 {
                         MapPolyline(coordinates: routeCoords)
-                            .stroke(LocusTheme.accent, lineWidth: 5)
+                            .stroke(KladzTheme.accent, lineWidth: 5)
                     }
                     if drawnPath.count > 1 {
                         MapPolyline(coordinates: drawnPath)
-                            .stroke(LocusTheme.accentSecondary, style: StrokeStyle(lineWidth: 4, dash: [6, 4]))
+                            .stroke(KladzTheme.accentSecondary, style: StrokeStyle(lineWidth: 4, dash: [6, 4]))
                     }
                 }
                 .mapStyle(mapStyle)
@@ -127,7 +127,7 @@ struct MapHomeView: View {
         .onChange(of: session.pin?.latitude) { _, newValue in
             if newValue == nil { pinSelected = false }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .locusImportGPX)) { note in
+        .onReceive(NotificationCenter.default.publisher(for: .kladzImportGPX)) { note in
             guard let url = note.object as? URL else { return }
             importGPX(url)
         }
@@ -223,11 +223,11 @@ struct MapHomeView: View {
                 }
                 .font(.subheadline.weight(.semibold))
                 .buttonStyle(.plain)
-                .foregroundStyle(LocusTheme.accent)
+                .foregroundStyle(KladzTheme.accent)
             }
         }
         .padding(12)
-        .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .kladzGlass(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
@@ -252,7 +252,7 @@ struct MapHomeView: View {
                 Divider().opacity(0.3)
             }
         }
-        .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .kladzGlass(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
@@ -268,7 +268,7 @@ struct MapHomeView: View {
                 drawMode.toggle()
                 if !drawMode { drawnPath.removeAll() }
             }
-            .foregroundStyle(drawMode ? LocusTheme.accentSecondary : .primary)
+            .foregroundStyle(drawMode ? KladzTheme.accentSecondary : .primary)
 
             if session.pin != nil {
                 chromeIconButton("star.circle") {
@@ -280,7 +280,7 @@ struct MapHomeView: View {
             }
         }
         .padding(6)
-        .locusGlass(.clear, in: Capsule())
+        .kladzGlass(.clear, in: Capsule())
         .contentShape(Capsule())
     }
 
@@ -295,7 +295,7 @@ struct MapHomeView: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .locusGlass(.interactive, in: Circle())
+        .kladzGlass(.interactive, in: Circle())
         .foregroundStyle(.primary)
         .contentShape(Circle())
         .accessibilityLabel("Current location")

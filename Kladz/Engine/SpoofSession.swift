@@ -90,8 +90,8 @@ final class SpoofSession: ObservableObject {
     private var joystickVector: CGVector = .zero
     private let locationKeeper = BackgroundKeepAlive()
 
-    private let favoritesKey = "locus.favorites"
-    private let recentsKey = "locus.recents"
+    private let favoritesKey = "kladz.favorites"
+    private let recentsKey = "kladz.recents"
     private static let maximumPlaybackCoordinates = 100_000
 
     init() {

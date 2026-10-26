@@ -10,16 +10,16 @@ struct JoystickPad: View {
         ZStack {
             Circle()
                 .frame(width: radius * 2 + 28, height: radius * 2 + 28)
-                .locusGlass(.clear, in: Circle())
+                .kladzGlass(.clear, in: Circle())
 
             Circle()
-                .stroke(LocusTheme.accent.opacity(0.4), lineWidth: 2)
+                .stroke(KladzTheme.accent.opacity(0.4), lineWidth: 2)
                 .frame(width: radius * 2, height: radius * 2)
 
             Circle()
-                .fill(LocusTheme.accent)
+                .fill(KladzTheme.accent)
                 .frame(width: 44, height: 44)
-                .shadow(color: LocusTheme.accent.opacity(0.45), radius: 8)
+                .shadow(color: KladzTheme.accent.opacity(0.45), radius: 8)
                 .offset(dragOffset)
                 .gesture(
                     DragGesture(minimumDistance: 0)
