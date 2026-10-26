@@ -140,13 +140,16 @@ final class PairingStore: ObservableObject {
     }
 
     private func looksLikePairingPlist(_ data: Data) -> Bool {
-        if let obj = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) {
-            return obj is [AnyHashable: Any] || obj is [Any]
+        guard let object = try? PropertyListSerialization.propertyList(
+            from: data,
+            options: [],
+            format: nil
+        ) else {
+            return false
         }
-        // XML plist often starts with these markers when copied as text.
-        guard let text = String(data: data, encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) else { return false }
-        return text.hasPrefix("<?xml") || text.hasPrefix("bplist") || text.contains("<plist")
+
+        // Pairing files must be a valid property-list collection, not arbitrary XML/text.
+        return object is [AnyHashable: Any] || object is [Any]
     }
 }
 
