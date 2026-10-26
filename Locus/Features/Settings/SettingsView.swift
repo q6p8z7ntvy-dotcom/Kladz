@@ -97,7 +97,7 @@ struct SettingsView: View {
                 }
 
                 Section("Privacy") {
-                    Text("No account or analytics. Favorites and recents stay on-device. Apple MapKit may process place-search and route requests.")
+                    Text("No account or analytics. Favorites and recents stay on-device. Pairing credentials are stored in the app sandbox with iOS Data Protection and excluded from device backups. Apple MapKit may process place-search and route requests.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
