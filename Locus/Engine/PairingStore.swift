@@ -85,25 +85,39 @@ final class PairingStore: ObservableObject {
     func importPairingFromClipboard() throws {
         let board = UIPasteboard.general
 
-        if let url = board.url ?? board.urls?.first {
-            if url.isFileURL {
-                try importPairing(from: url)
-                return
-            }
+        if let url = board.url ?? board.urls?.first, url.isFileURL {
+            try importPairing(from: url)
+            return
         }
 
-        let candidates: [Data?] = [
-            board.data(forPasteboardType: "com.apple.property-list"),
-            board.data(forPasteboardType: UTType.propertyList.identifier),
-            board.data(forPasteboardType: UTType.xml.identifier),
-            board.data(forPasteboardType: UTType.data.identifier),
-            board.string?.data(using: .utf8),
+        // Check one representation at a time. Keeping every clipboard representation
+        // in an array can retain several copies of a large payload simultaneously.
+        let pasteboardTypes = [
+            "com.apple.property-list",
+            UTType.propertyList.identifier,
+            UTType.xml.identifier,
+            UTType.data.identifier
         ]
-
-        guard let data = candidates.compactMap({ $0 }).first(where: { !$0.isEmpty }) else {
-            throw PairingImportError.emptyClipboard
+        for type in pasteboardTypes {
+            guard let data = board.data(forPasteboardType: type), !data.isEmpty else {
+                continue
+            }
+            try installPairingData(data)
+            return
         }
-        try installPairingData(data)
+
+        if let text = board.string {
+            guard text.utf8.count <= Self.maximumPairingFileSize else {
+                throw PairingImportError.fileTooLarge
+            }
+            guard let data = text.data(using: .utf8), !data.isEmpty else {
+                throw PairingImportError.emptyClipboard
+            }
+            try installPairingData(data)
+            return
+        }
+
+        throw PairingImportError.emptyClipboard
     }
 
     func removePairing() throws {
