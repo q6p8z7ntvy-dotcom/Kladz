@@ -18,7 +18,7 @@ Free and open-source iPhone location teleport. Tap the map, search a place, or d
 - Background keep-alive + live status bar + drop alerts
 - Favorites & recents
 - First-run setup walkthrough
-- No account or analytics. Saved favorites and recents stay on-device; Apple MapKit may process place-search and route requests.
+- No account or analytics. Favorites and recents stay on-device; pairing credentials use iOS Data Protection and are excluded from device backups. Apple MapKit may process place-search and route requests. See [SECURITY.md](SECURITY.md) for the security model and its limits.
 
 ## Install
 
