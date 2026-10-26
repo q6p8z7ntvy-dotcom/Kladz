@@ -240,6 +240,7 @@ final class SpoofSession: ObservableObject {
         }
         favorites.removeAll { $0.id == place.id }
         favorites.insert(place, at: 0)
+        if favorites.count > 100 { favorites = Array(favorites.prefix(100)) }
         SavedPlace.save(favorites, key: favoritesKey)
     }
 
@@ -247,7 +248,7 @@ final class SpoofSession: ObservableObject {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty,
               let index = favorites.firstIndex(where: { $0.id == place.id }) else { return }
-        favorites[index].name = trimmed
+        favorites[index].name = String(trimmed.prefix(100))
         SavedPlace.save(favorites, key: favoritesKey)
     }
 
