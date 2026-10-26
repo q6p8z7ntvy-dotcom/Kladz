@@ -114,7 +114,7 @@ struct SettingsView: View {
                     Button {
                         showNameEasterEgg = true
                     } label: {
-                        Text("locus, n. — a place. From the Latin for where you are.")
+                        Text("Kladz — your location, on your terms.")
                             .font(.footnote.italic())
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
