@@ -1,4 +1,4 @@
-name: Kladz
+name: Locus
 options:
   bundleIdPrefix: com.chrismack
   deploymentTarget:
@@ -60,3 +60,10 @@ targets:
         ENABLE_BITCODE: NO
         SUPPORTS_MACCATALYST: NO
         SWIFT_OBJC_BRIDGING_HEADER: ""
+
+schemes:
+  # Keep the previous scheme available for existing IPA workflows.
+  Locus:
+    build:
+      targets:
+        Kladz: all
