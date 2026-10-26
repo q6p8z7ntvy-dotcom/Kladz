@@ -96,7 +96,7 @@ struct PairOnDeviceView: View {
     private var steps: some View {
         VStack(alignment: .leading, spacing: 12) {
             step(1, "Tap Start pairing and allow Local Network + Location when asked.")
-            step(2, "Allow notifications — the code can appear as a banner over Settings.")
+            step(2, "Allow notifications for pairing status. For privacy, the code itself stays inside Kladz.")
             step(3, "Open Settings › Privacy & Security › Developer Mode › Pair with Kladz → Pair.")
             step(4, "Enter your unlock passcode first. On the next prompt, type Kladz’s 6-digit code.")
         }
