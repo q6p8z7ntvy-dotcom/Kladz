@@ -11,6 +11,7 @@ final class PairableHostAdvertiser {
     private var activeRelay: RelayPipe?
     private(set) var publishedPort: UInt16 = 0
     private var rustLoopbackPort: UInt16 = 0
+    var onFailure: (() -> Void)?
 
     func publish(
         port: UInt16,
@@ -55,6 +56,7 @@ final class PairableHostAdvertiser {
                 case .failed(let error):
                     self?.publishedPort = 0
                     NSLog("[Kladz] NWListener failed: %@", String(describing: error))
+                    DispatchQueue.main.async { [weak self] in self?.onFailure?() }
                 case .cancelled:
                     NSLog("[Kladz] NWListener cancelled")
                 default:
@@ -75,6 +77,7 @@ final class PairableHostAdvertiser {
             NSLog("[Kladz] NWListener starting; will relay → 127.0.0.1:%u", port)
         } catch {
             NSLog("[Kladz] NWListener start failed: %@", error.localizedDescription)
+            DispatchQueue.main.async { [weak self] in self?.onFailure?() }
         }
     }
 
