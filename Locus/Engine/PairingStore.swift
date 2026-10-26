@@ -59,7 +59,7 @@ final class PairingStore: ObservableObject {
 
         if let attributes = try? FileManager.default.attributesOfItem(atPath: sourceURL.path),
            let size = attributes[.size] as? NSNumber,
-           size.intValue > Self.maximumPairingFileSize {
+           size.uint64Value > UInt64(Self.maximumPairingFileSize) {
             throw PairingImportError.fileTooLarge
         }
         let data = try Data(contentsOf: sourceURL)
