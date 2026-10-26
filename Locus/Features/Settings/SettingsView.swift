@@ -60,8 +60,8 @@ struct SettingsView: View {
                     Text("Developer pairing")
                 } footer: {
                     Text(supportsOnDevicePairing
-                         ? "On iOS 27, use Pair on this iPhone — no computer. Locus advertises a pairable host; confirm the 6-digit code under Settings › Privacy & Security › Developer Mode › Pair with Host. On older iOS, import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). LiveContainer: enable Fix File Picker on Locus, or use Paste / Share → LiveContainer → Locus."
-                         : "Import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). If the file picker fails (common in LiveContainer), enable Fix File Picker on the app, share the file into LiveContainer → Locus, or copy the plist and use Paste.")
+                         ? "On iOS 27, use Pair on this iPhone — no computer. Kladz advertises a pairable host; confirm the 6-digit code under Settings › Privacy & Security › Developer Mode › Pair with Host. On older iOS, import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). LiveContainer: enable Fix File Picker on Kladz, or use Paste / Share → LiveContainer → Kladz."
+                         : "Import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). If the file picker fails (common in LiveContainer), enable Fix File Picker on the app, share the file into LiveContainer → Kladz, or copy the plist and use Paste.")
                 }
 
                 Section {
@@ -97,7 +97,7 @@ struct SettingsView: View {
                 }
 
                 Section("Privacy") {
-                    Text("Fully on-device. Favorites and recents stay in UserDefaults. No analytics, no accounts, nothing uploaded.")
+                    Text("No account or analytics. Favorites and recents stay on-device. Apple MapKit may process place-search and route requests.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -105,7 +105,7 @@ struct SettingsView: View {
                 Section("About") {
                     LabeledContent("Version", value: appVersion)
                     LabeledContent("Engine", value: "idevice DVT location simulation")
-                    Text("Locus is free and open source (MIT). Location injection uses the MIT-licensed idevice FFI.")
+                    Text("Kladz is free and open source (MIT). Location injection uses the MIT-licensed idevice FFI.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
