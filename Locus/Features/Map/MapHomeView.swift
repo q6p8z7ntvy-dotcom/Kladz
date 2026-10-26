@@ -15,6 +15,8 @@ struct MapHomeView: View {
     @State private var isRouting = false
     @State private var routeRequestTask: Task<Void, Never>?
     @State private var routeRequestID = UUID()
+    @State private var searchSelectionTask: Task<Void, Never>?
+    @State private var searchSelectionID = UUID()
     @State private var showRouteSheet = false
     @State private var showGPXImporter = false
     @State private var drawnPath: [CLLocationCoordinate2D] = []
@@ -61,6 +63,7 @@ struct MapHomeView: View {
                                     suppressNextMapTap = true
                                     withAnimation {
                                         session.pin = nil
+                                        pinPlaceName = nil
                                         pinSelected = false
                                     }
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -196,6 +199,10 @@ struct MapHomeView: View {
                     searchFocused = false
                 }
                 .onChange(of: searchText) { _, value in
+                    // Invalidate a place lookup when the user changes or clears the query.
+                    searchSelectionTask?.cancel()
+                    searchSelectionTask = nil
+                    searchSelectionID = UUID()
                     search.query = value
                 }
             if searchFocused || !searchText.isEmpty {
@@ -336,21 +343,43 @@ struct MapHomeView: View {
     }
 
     private func select(completion: MKLocalSearchCompletion) {
-        Task {
+        searchSelectionTask?.cancel()
+        let requestID = UUID()
+        searchSelectionID = requestID
+        searchFocused = false
+
+        searchSelectionTask = Task {
             let request = MKLocalSearch.Request(completion: completion)
-            if let response = try? await MKLocalSearch(request: request).start(),
-               let item = response.mapItems.first {
-                let coord = item.placemark.coordinate
+            do {
+                let response = try await MKLocalSearch(request: request).start()
+                guard !Task.isCancelled, let item = response.mapItems.first else { return }
+                let coordinate = item.placemark.coordinate
+                guard CLLocationCoordinate2DIsValid(coordinate) else { return }
                 let title = item.name ?? completion.title
+
                 await MainActor.run {
-                    session.pin = coord
+                    // A slower lookup must not replace a newer selection.
+                    guard !Task.isCancelled, searchSelectionID == requestID else { return }
+                    session.pin = coordinate
                     pinPlaceName = title
-                    position = .region(MKCoordinateRegion(center: coord, latitudinalMeters: 1200, longitudinalMeters: 1200))
+                    position = .region(MKCoordinateRegion(
+                        center: coordinate,
+                        latitudinalMeters: 1200,
+                        longitudinalMeters: 1200
+                    ))
                     searchText = ""
                     search.query = ""
                     searchFocused = false
-                    session.addFavorite(name: title, coordinate: coord)
-                    session.pushNamedRecent(name: title, coordinate: coord)
+                    session.addFavorite(name: title, coordinate: coordinate)
+                    session.pushNamedRecent(name: title, coordinate: coordinate)
+                    searchSelectionTask = nil
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    guard searchSelectionID == requestID else { return }
+                    session.lastError = "Couldn’t load that place. Check your connection and try again."
+                    searchSelectionTask = nil
                 }
             }
         }
@@ -423,9 +452,9 @@ struct MapHomeView: View {
             return
         }
         let gpx = GPXCodec.export(path)
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Kladz-Route.gpx")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Kladz-Route-\(UUID().uuidString).gpx")
         do {
-            try gpx.data(using: .utf8)?.write(to: url)
+            try Data(gpx.utf8).write(to: url, options: .atomic)
             let av = UIActivityViewController(activityItems: [url], applicationActivities: nil)
             if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let root = scene.keyWindow?.rootViewController {
@@ -448,6 +477,7 @@ final class PlaceSearchCompleter: NSObject, ObservableObject, MKLocalSearchCompl
 
     var query: String = "" {
         didSet {
+            results = []
             completer.queryFragment = query
         }
     }
@@ -460,7 +490,10 @@ final class PlaceSearchCompleter: NSObject, ObservableObject, MKLocalSearchCompl
 
     nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
         let items = completer.results
-        Task { @MainActor in self.results = items }
+        Task { @MainActor in
+            guard completer.queryFragment == self.query else { return }
+            self.results = items
+        }
     }
 
     nonisolated func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
